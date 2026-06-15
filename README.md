@@ -4,10 +4,13 @@ A visual discovery tool for exploring color systems perfected by nature. Every b
 
 **Live:** [nature-colorpalette.web.app](https://nature-colorpalette.web.app)
 
+Deploys automatically on every push to `main` → Firebase Hosting. See [docs/DEPLOY.md](docs/DEPLOY.md) for one-time GitHub secret setup.
+
 ## Stack
 
-- Next.js 15 · TypeScript · Tailwind · shadcn/ui
+- Next.js 15 (static export) · TypeScript · Tailwind · shadcn/ui
 - Firestore (bird data) · images in `public/birds/`
+- GitHub Actions → Firebase Hosting on push to `main`
 - Color pipeline: extract → interpret → tokens → designer modes
 
 ## Local development
@@ -32,6 +35,8 @@ USE_JSON_DATA=true npm run dev
 | `npm run ingest` | Fetch birds from Wikipedia + extract colors |
 | `npm run refresh-colors` | Re-extract colors from cached cutouts |
 | `npm run audit-colors` | QA palette quality across all birds |
+| `npm run build:hosting` | Static export for Firebase Hosting |
+| `npm run deploy:hosting` | Build + deploy locally via Firebase CLI |
 | `npm run seed:firestore` | Upload `dataset.json` → Firestore |
 
 ## Environment

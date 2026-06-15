@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "build:hosting": "USE_JSON_DATA=true prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -15,7 +16,8 @@
     "ingest": "tsx scripts/ingest.ts",
     "refresh-colors": "tsx scripts/refresh-colors.ts",
     "audit-colors": "tsx scripts/audit-colors.ts",
-    "seed:firestore": "tsx scripts/seed-firestore.ts"
+    "seed:firestore": "tsx scripts/seed-firestore.ts",
+    "deploy:hosting": "npm run build:hosting && firebase deploy --only hosting"
   },
   "prisma": {
     "seed": "tsx scripts/seed.ts"

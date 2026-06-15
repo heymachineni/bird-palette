@@ -3,9 +3,14 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import { getBirdBySlug } from "@/lib/data/birds";
+import { getDatasetBirds } from "@/lib/data/dataset";
 import { BirdHero } from "@/components/bird/bird-hero";
 import { BirdIntro, BirdAbout } from "@/components/bird/bird-metadata";
 import { BirdStudio } from "@/components/bird/bird-studio";
+
+export function generateStaticParams() {
+  return getDatasetBirds().map((bird) => ({ slug: bird.slug }));
+}
 
 export async function generateMetadata({
   params,
