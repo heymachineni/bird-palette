@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     template: "%s — Bird Palette",
   },
   description:
-    "Copy real bird color combinations into your designs. Search by color or browse birds.",
+    "Real bird color combinations for inspiration. Search by color or browse birds.",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Bird Palette",
-    description: "Bird color combinations for design.",
+    description: "Bird color combinations for inspiration.",
     type: "website",
   },
 };

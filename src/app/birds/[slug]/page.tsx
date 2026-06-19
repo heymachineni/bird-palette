@@ -24,7 +24,7 @@ export async function generateMetadata({
   const families = bird.colorFamilies.join(", ");
   return {
     title: bird.name,
-    description: `${bird.name} color combination — ${families}. Copy-ready plumage palette for design.`,
+    description: `${bird.name} color combination — ${families}. Copy-ready plumage palette for inspiration.`,
     openGraph: {
       title: `${bird.name} — Bird Palette`,
       description: `Plumage colors: ${families}`,
