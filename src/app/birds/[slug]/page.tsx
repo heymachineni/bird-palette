@@ -26,7 +26,7 @@ export async function generateMetadata({
     title: bird.name,
     description: `${bird.name} color combination — ${families}. Copy-ready plumage palette for design.`,
     openGraph: {
-      title: `${bird.name} — Nature Palette`,
+      title: `${bird.name} — Bird Palette`,
       description: `Plumage colors: ${families}`,
       ...(hasBirdImage(bird.imageUrl)
         ? { images: [bird.imageUrl] }

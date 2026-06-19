@@ -9,7 +9,7 @@ export function SiteHeader() {
           scroll={false}
           className="font-serif text-base tracking-tight text-foreground transition-opacity hover:opacity-70"
         >
-          Nature Palette
+          Bird Palette
         </Link>
       </div>
     </header>

@@ -29,13 +29,21 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   ),
   title: {
-    default: "Nature Palette",
-    template: "%s — Nature Palette",
+    default: "Bird Palette",
+    template: "%s — Bird Palette",
   },
   description:
     "Copy real bird color combinations into your designs. Search by color or browse birds.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: [{ url: "/favicon.svg" }],
+    apple: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+  },
   openGraph: {
-    title: "Nature Palette",
+    title: "Bird Palette",
     description: "Bird color combinations for design.",
     type: "website",
   },
