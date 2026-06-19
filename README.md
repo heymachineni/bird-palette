@@ -2,7 +2,7 @@
 
 Copy real bird color combinations into your designs. Search by color or browse birds — see plumage palettes and preview them on UI components.
 
-**Live:** [nature-colorpalette.web.app](https://nature-colorpalette.web.app)
+**Live:** [birdpalette.web.app](https://birdpalette.web.app)
 
 ## Stack
 
@@ -50,8 +50,8 @@ Without `KAGGLE_DATA_DIR`, ingest uses existing `public/birds/*.webp`.
 Copy `.env.example` → `.env`:
 
 ```
-FIREBASE_SERVICE_ACCOUNT_PATH="your-firebase-adminsdk.json"
-NEXT_PUBLIC_APP_URL="https://nature-colorpalette.web.app"
+FIREBASE_SERVICE_ACCOUNT_PATH="birdpalette-firebase-adminsdk.json"
+NEXT_PUBLIC_APP_URL="https://birdpalette.web.app"
 ```
 
 ## Data model (v2)

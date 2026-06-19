@@ -7,14 +7,19 @@ cd "$(dirname "$0")/.."
 echo "→ Building static site..."
 npm run build:hosting
 
-if [[ -f "nature-colorpalette-firebase-adminsdk-fbsvc-70838260b8.json" ]]; then
-  export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/nature-colorpalette-firebase-adminsdk-fbsvc-70838260b8.json"
-  echo "→ Deploying with service account JSON..."
+SA="${FIREBASE_SERVICE_ACCOUNT_PATH:-}"
+if [[ -z "$SA" && -f "birdpalette-firebase-adminsdk.json" ]]; then
+  SA="birdpalette-firebase-adminsdk.json"
+fi
+
+if [[ -n "$SA" && -f "$SA" ]]; then
+  export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/$SA"
+  echo "→ Deploying with service account: $SA"
 else
   echo "→ Deploying with firebase login (run 'npx firebase login' first if needed)..."
 fi
 # Cursor/VS Code sets VSCODE_CWD; firebase-tools mis-resolves template paths when it is set.
 unset VSCODE_CWD
-npx firebase deploy --only hosting --project nature-colorpalette
+npx firebase deploy --only hosting --project birdpalette
 
-echo "✓ Done: https://nature-colorpalette.web.app"
+echo "✓ Done: https://birdpalette.web.app"

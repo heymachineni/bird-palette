@@ -34,10 +34,6 @@ export const metadata: Metadata = {
   },
   description:
     "Copy real bird color combinations into your designs. Search by color or browse birds.",
-  icons: {
-    icon: [{ url: "/icon.png", type: "image/png" }],
-    apple: [{ url: "/apple-icon.png", type: "image/png" }],
-  },
   openGraph: {
     title: "Nature Palette",
     description: "Bird color combinations for design.",

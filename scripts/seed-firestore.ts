@@ -3,7 +3,7 @@
  * Images stay in public/birds/ (no Firebase Storage required).
  *
  * Prerequisites:
- *   1. Firestore enabled in Firebase console (project: nature-colorpalette)
+ *   1. Firestore enabled in Firebase console (project: birdpalette)
  *   2. Service account key in .env (see .env.example)
  *
  * Run:  npm run seed:firestore
