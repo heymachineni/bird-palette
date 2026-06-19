@@ -13,7 +13,6 @@ export function SiteHeader() {
         </Link>
         <Link
           href="/perch"
-          scroll={false}
           className="font-serif text-sm italic lowercase text-muted-foreground transition-colors hover:text-foreground"
         >
           perch
