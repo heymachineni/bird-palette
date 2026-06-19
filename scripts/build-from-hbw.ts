@@ -25,14 +25,13 @@ import {
   buildThemeFromPlumage,
   colorFamiliesFrom,
   passesWcagAA,
-  previewHexes,
 } from "../src/lib/color/plumage";
 import { rankSimilarBirds } from "../src/lib/color/similarity";
-import { hasBirdImage } from "../src/lib/photos/placeholder";
+import { hasBirdImage, filterBirdsWithPhotos } from "../src/lib/photos/placeholder";
+import { writePublicBirdData } from "./lib/write-public-data";
 import type { BirdRecord } from "./bird-record";
 
 const OUTPUT = path.join(process.cwd(), "prisma", "seed", "dataset.json");
-const INDEX_OUTPUT = path.join(process.cwd(), "public", "data", "index.json");
 
 function parseArgs(argv: string[]) {
   const limitIdx = argv.indexOf("--limit");
@@ -102,21 +101,6 @@ function withSimilarity(birds: BirdRecord[]): BirdRecord[] {
   }
   process.stdout.write("\n");
   return birds;
-}
-
-function buildSearchIndex(birds: BirdRecord[]) {
-  return birds.map((b) => ({
-    slug: b.slug,
-    name: b.name,
-    scientificName: b.scientificName,
-    region: b.region,
-    imageUrl: b.imageUrl,
-    colorFamilies: b.colorFamilies,
-    preview: previewHexes(b.colors),
-    palette: b.colors.map((c) => ({ hex: c.hex, share: c.share })),
-    colors: b.colors,
-    similar: (b.similar ?? []).map((s) => s.slug),
-  }));
 }
 
 async function main() {
@@ -203,9 +187,13 @@ async function main() {
   process.stdout.write("\n");
   await photos.flush();
 
-  const withSim = withSimilarity(birds);
+  const withPhotos = filterBirdsWithPhotos(birds);
+  if (withPhotos.length < birds.length) {
+    skipped += birds.length - withPhotos.length;
+  }
+
+  const withSim = withSimilarity(withPhotos);
   await mkdir(path.dirname(OUTPUT), { recursive: true });
-  await mkdir(path.dirname(INDEX_OUTPUT), { recursive: true });
 
   await writeFile(
     OUTPUT,
@@ -220,12 +208,12 @@ async function main() {
       2,
     ),
   );
-  await writeFile(INDEX_OUTPUT, JSON.stringify(buildSearchIndex(withSim)));
+  const { total, pageCount } = await writePublicBirdData(withSim);
 
   console.log(
-    `\n✓ Wrote ${withSim.length} birds (${skipped} skipped)\n` +
+    `\n✓ Wrote ${total} birds (${skipped} skipped)\n` +
       `  ${path.relative(process.cwd(), OUTPUT)}\n` +
-      `  ${path.relative(process.cwd(), INDEX_OUTPUT)}\n`,
+      `  public/data/manifest.json (${pageCount} pages)\n`,
   );
 }
 

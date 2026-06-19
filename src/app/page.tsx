@@ -1,7 +1,7 @@
-import { getBirds } from "@/lib/data/birds";
+import { getHomeInitialData } from "@/lib/data/birds";
 import { HomeClient } from "@/components/home/home-client";
 
 export default async function HomePage() {
-  const birds = await getBirds();
-  return <HomeClient birds={birds} />;
+  const { manifest, initialBirds } = await getHomeInitialData();
+  return <HomeClient manifest={manifest} initialBirds={initialBirds} />;
 }

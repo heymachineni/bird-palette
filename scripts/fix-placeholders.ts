@@ -13,11 +13,10 @@ import {
   filterBirdsWithPhotos,
   isBirdPlaceholderUrl,
 } from "../src/lib/photos/placeholder";
-import { previewHexes } from "../src/lib/color/plumage";
+import { writePublicBirdData } from "./lib/write-public-data";
 import type { BirdRecord } from "./bird-record";
 
 const DATASET = path.join(process.cwd(), "prisma", "seed", "dataset.json");
-const INDEX = path.join(process.cwd(), "public", "data", "index.json");
 const CACHE = path.join(process.cwd(), "data", "hbw", "photo-cache.json");
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -43,21 +42,6 @@ async function resolvePhoto(
   }
 
   return "";
-}
-
-function buildSearchIndex(birds: BirdRecord[]) {
-  return birds.map((b) => ({
-    slug: b.slug,
-    name: b.name,
-    scientificName: b.scientificName,
-    region: b.region,
-    imageUrl: b.imageUrl,
-    colorFamilies: b.colorFamilies,
-    preview: previewHexes(b.colors),
-    palette: b.colors.map((c) => ({ hex: c.hex, share: c.share })),
-    colors: b.colors,
-    similar: (b.similar ?? []).map((s) => s.slug),
-  }));
 }
 
 async function main() {
@@ -116,7 +100,7 @@ async function main() {
       2,
     ),
   );
-  await writeFile(INDEX, JSON.stringify(buildSearchIndex(withPhotos)));
+  await writePublicBirdData(withPhotos);
   await writeFile(CACHE, JSON.stringify(cache, null, 2));
 
   process.stdout.write("\n");

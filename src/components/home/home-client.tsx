@@ -6,9 +6,11 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
+  useCallback,
 } from "react";
-import type { BirdSummary } from "@/types/bird";
+import type { BirdSummary, DataManifest } from "@/types/bird";
 import { filterBirds, filterBirdsByHex } from "@/lib/search";
+import { fetchBirdPage, fetchSearchIndex } from "@/lib/data/client-birds";
 import { HomeSearch } from "./home-search";
 import { BirdThumbnail } from "./bird-thumbnail";
 import { BirdDetailModal } from "@/components/bird/bird-detail-modal";
@@ -16,37 +18,120 @@ import { BirdDetailModal } from "@/components/bird/bird-detail-modal";
 const PAGE_SIZE = 40;
 const SCROLL_KEY = "home:list-state";
 
-// useLayoutEffect warns during SSR; fall back to useEffect on the server.
 const useIsoLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-export function HomeClient({ birds }: { birds: BirdSummary[] }) {
+export function HomeClient({
+  manifest,
+  initialBirds,
+}: {
+  manifest: DataManifest;
+  initialBirds: BirdSummary[];
+}) {
   const [query, setQuery] = useState("");
   const [pickedColor, setPickedColor] = useState<string | null>(null);
   const [activeBird, setActiveBird] = useState<BirdSummary | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [loadedBirds, setLoadedBirds] = useState(initialBirds);
+  const [loadedPageCount, setLoadedPageCount] = useState(1);
+  const [loadingPage, setLoadingPage] = useState(false);
+  const [searchIndex, setSearchIndex] = useState<BirdSummary[] | null>(null);
+  const [searchIndexLoading, setSearchIndexLoading] = useState(false);
+
   const sentinelRef = useRef<HTMLDivElement>(null);
   const prevFilters = useRef({ query, pickedColor });
   const pendingScrollY = useRef<number | null>(null);
   const targetCount = useRef(PAGE_SIZE);
+  const loadingPageRef = useRef(false);
+  const loadedPageCountRef = useRef(loadedPageCount);
+  const loadedBirdsRef = useRef(loadedBirds);
 
-  // Live mirror of visibleCount so event handlers (click/pagehide) read the
-  // current value without re-subscribing.
   const visibleCountRef = useRef(visibleCount);
   visibleCountRef.current = visibleCount;
+  loadingPageRef.current = loadingPage;
+  loadedPageCountRef.current = loadedPageCount;
+  loadedBirdsRef.current = loadedBirds;
+
+  const isFiltering = query.length > 0 || pickedColor !== null;
+
+  useEffect(() => {
+    if (!isFiltering || searchIndex !== null || searchIndexLoading) return;
+    setSearchIndexLoading(true);
+    fetchSearchIndex()
+      .then(setSearchIndex)
+      .finally(() => setSearchIndexLoading(false));
+  }, [isFiltering, searchIndex, searchIndexLoading]);
+
+  useEffect(() => {
+    if (!activeBird || searchIndex) return;
+    fetchSearchIndex().then(setSearchIndex);
+  }, [activeBird, searchIndex]);
+
+  const fetchNextPage = useCallback(async () => {
+    if (
+      loadingPageRef.current ||
+      loadedPageCountRef.current >= manifest.pageCount
+    ) {
+      return;
+    }
+    const next = loadedPageCountRef.current + 1;
+    loadingPageRef.current = true;
+    setLoadingPage(true);
+    try {
+      const page = await fetchBirdPage(next);
+      setLoadedBirds((prev) => {
+        const merged = [...prev, ...page];
+        loadedBirdsRef.current = merged;
+        return merged;
+      });
+      setLoadedPageCount(next);
+      loadedPageCountRef.current = next;
+    } finally {
+      loadingPageRef.current = false;
+      setLoadingPage(false);
+    }
+  }, [manifest.pageCount]);
+
+  const ensureBirdsLoaded = useCallback(
+    async (minCount: number) => {
+      while (
+        loadedBirdsRef.current.length < minCount &&
+        loadedPageCountRef.current < manifest.pageCount &&
+        !loadingPageRef.current
+      ) {
+        await fetchNextPage();
+      }
+    },
+    [fetchNextPage, manifest.pageCount],
+  );
 
   const results = useMemo(() => {
-    let list = filterBirdsByHex(birds, pickedColor);
-    list = filterBirds(list, query);
-    return list;
-  }, [birds, query, pickedColor]);
+    if (isFiltering) {
+      if (!searchIndex) return [];
+      let list = filterBirdsByHex(searchIndex, pickedColor);
+      list = filterBirds(list, query);
+      return list;
+    }
+    return loadedBirds;
+  }, [isFiltering, searchIndex, loadedBirds, query, pickedColor]);
 
   const visible = results.slice(0, visibleCount);
-  const hasMore = visibleCount < results.length;
+  const hasMoreBrowse =
+    !isFiltering &&
+    (visibleCount < loadedBirds.length ||
+      loadedPageCount < manifest.pageCount);
+  const hasMoreFilter = isFiltering && visibleCount < results.length;
+  const hasMore = hasMoreBrowse || hasMoreFilter;
 
-  // Reset to the top of the list only when the filters actually change (compared
-  // by value so Strict Mode's double-invoke and the initial mount don't trigger
-  // a reset that would wipe out the restored scroll position).
+  const allBirds = useMemo(() => {
+    const map = new Map<string, BirdSummary>();
+    for (const b of loadedBirds) map.set(b.slug, b);
+    if (searchIndex) {
+      for (const b of searchIndex) map.set(b.slug, b);
+    }
+    return [...map.values()];
+  }, [loadedBirds, searchIndex]);
+
   useEffect(() => {
     const prev = prevFilters.current;
     if (prev.query === query && prev.pickedColor === pickedColor) return;
@@ -55,8 +140,6 @@ export function HomeClient({ birds }: { birds: BirdSummary[] }) {
     window.scrollTo(0, 0);
   }, [query, pickedColor]);
 
-  // Take over scroll restoration from the browser/router so we control exactly
-  // when the position is applied (after the saved card count is back in place).
   useIsoLayoutEffect(() => {
     const prev = history.scrollRestoration;
     history.scrollRestoration = "manual";
@@ -65,9 +148,6 @@ export function HomeClient({ birds }: { birds: BirdSummary[] }) {
     };
   }, []);
 
-  // Read the saved list state once on mount. Restore the card count first so the
-  // document becomes tall enough; the scroll itself is applied below, only after
-  // that count has committed (otherwise scrollTo clamps to a short page).
   useIsoLayoutEffect(() => {
     let raw: string | null = null;
     try {
@@ -89,27 +169,35 @@ export function HomeClient({ birds }: { birds: BirdSummary[] }) {
         pendingScrollY.current = scrollY;
       }
     } catch {
-      // ignore malformed state
+      /* ignore malformed state */
     }
   }, []);
 
-  // Apply the saved scroll exactly once, the moment the grid has grown to the
-  // saved count. Deterministic: it fires on the render where the height is
-  // sufficient. The extra rAF covers a same-frame scroll from the router.
+  useEffect(() => {
+    if (isFiltering || pendingScrollY.current == null) return;
+    const count = targetCount.current;
+    if (loadedBirds.length >= count || loadedPageCount >= manifest.pageCount) {
+      return;
+    }
+    void ensureBirdsLoaded(count);
+  }, [
+    isFiltering,
+    loadedBirds.length,
+    loadedPageCount,
+    manifest.pageCount,
+    ensureBirdsLoaded,
+  ]);
+
   useIsoLayoutEffect(() => {
     if (pendingScrollY.current == null) return;
     if (visibleCount < targetCount.current) return;
+    if (!isFiltering && loadedBirds.length < targetCount.current) return;
     const y = pendingScrollY.current;
     pendingScrollY.current = null;
     window.scrollTo(0, y);
     requestAnimationFrame(() => window.scrollTo(0, y));
-  }, [visibleCount]);
+  }, [visibleCount, isFiltering, loadedBirds.length]);
 
-  // Save the position at the moment we leave the page — not on every scroll.
-  // Saving on scroll captured the router's programmatic scroll-to-top during
-  // navigation and overwrote the real position with 0. Capturing on the link
-  // click (capture phase, before the router navigates) and on page hide records
-  // the true position for both in-app navigation and full reloads.
   useEffect(() => {
     const save = () => {
       try {
@@ -121,7 +209,7 @@ export function HomeClient({ birds }: { birds: BirdSummary[] }) {
           }),
         );
       } catch {
-        // storage unavailable — nothing to do
+        /* storage unavailable */
       }
     };
     const onClickCapture = (e: MouseEvent) => {
@@ -143,12 +231,24 @@ export function HomeClient({ birds }: { birds: BirdSummary[] }) {
     };
   }, []);
 
-  const reset = () => {
-    setQuery("");
-    setPickedColor(null);
-  };
+  useEffect(() => {
+    if (isFiltering || loadingPage) return;
+    if (
+      visibleCount + PAGE_SIZE > loadedBirds.length &&
+      loadedPageCount < manifest.pageCount
+    ) {
+      void fetchNextPage();
+    }
+  }, [
+    isFiltering,
+    visibleCount,
+    loadedBirds.length,
+    loadedPageCount,
+    manifest.pageCount,
+    loadingPage,
+    fetchNextPage,
+  ]);
 
-  // Infinite scroll — load more as the sentinel nears the viewport.
   useEffect(() => {
     if (!hasMore) return;
     const el = sentinelRef.current;
@@ -166,11 +266,25 @@ export function HomeClient({ birds }: { birds: BirdSummary[] }) {
     return () => observer.disconnect();
   }, [hasMore, visible.length]);
 
+  const reset = () => {
+    setQuery("");
+    setPickedColor(null);
+  };
+
+  const showEmpty =
+    !searchIndexLoading && results.length === 0 && (isFiltering || !loadingPage);
+  const showGrid = results.length > 0 || searchIndexLoading || loadingPage;
+
   return (
     <div className="container pb-32 pt-8 sm:pt-10">
       <section>
-        {results.length > 0 ? (
+        {showGrid ? (
           <>
+            {(searchIndexLoading || (loadingPage && visible.length === 0)) && (
+              <p className="mb-6 text-center text-sm text-muted-foreground">
+                Loading birds…
+              </p>
+            )}
             <div className="grid grid-cols-1 gap-5 min-[420px]:grid-cols-2 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
               {visible.map((bird, i) => (
                 <BirdThumbnail
@@ -183,7 +297,7 @@ export function HomeClient({ birds }: { birds: BirdSummary[] }) {
             </div>
             {hasMore && <div ref={sentinelRef} className="h-px w-full" />}
           </>
-        ) : (
+        ) : showEmpty ? (
           <div className="flex flex-col items-center gap-5 py-24 text-center">
             {pickedColor && (
               <span
@@ -212,7 +326,7 @@ export function HomeClient({ birds }: { birds: BirdSummary[] }) {
               Show all birds
             </button>
           </div>
-        )}
+        ) : null}
       </section>
 
       <HomeSearch
@@ -220,12 +334,12 @@ export function HomeClient({ birds }: { birds: BirdSummary[] }) {
         onQueryChange={setQuery}
         pickedColor={pickedColor}
         onPickColor={setPickedColor}
-        matchCount={results.length}
+        matchCount={isFiltering ? results.length : manifest.total}
       />
 
       <BirdDetailModal
         bird={activeBird}
-        allBirds={birds}
+        allBirds={allBirds}
         onClose={() => setActiveBird(null)}
         onSelectBird={setActiveBird}
       />

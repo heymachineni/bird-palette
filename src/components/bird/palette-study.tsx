@@ -5,19 +5,11 @@ import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
 import type { PlumageColorData } from "@/types/bird";
 import { bestTextOn } from "@/lib/color/accessibility";
+import { paletteHaptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 
 function formatShare(share: number) {
   return share >= 1 ? Math.round(share) : Math.round(share * 10) / 10;
-}
-
-/** Short pulse on Android; no-op on iOS Safari (no Vibration API). */
-function paletteHaptic(kind: "tick" | "copy" = "tick") {
-  try {
-    navigator.vibrate?.(kind === "copy" ? [12] : [6]);
-  } catch {
-    /* unsupported */
-  }
 }
 
 type DragState = {

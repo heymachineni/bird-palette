@@ -12,10 +12,12 @@ import type {
   BirdDetail,
   BirdSummary,
   BirdIndexEntry,
+  DataManifest,
   ThemeTokensData,
   PlumageColorData,
 } from "@/types/bird";
-import { filterBirdsWithPhotos, hasBirdImage } from "@/lib/photos/placeholder";
+import { entriesToSummaries } from "./client-birds";
+import { filterBirdsWithPhotos } from "@/lib/photos/placeholder";
 
 export type RawBirdRecord = {
   slug: string;
@@ -220,27 +222,39 @@ export function toDetail(b: RawBirdRecord, _all: RawBirdRecord[]): BirdDetail {
   };
 }
 
+function readSearchIndexEntries(): BirdIndexEntry[] | null {
+  for (const name of ["search-index.json", "index.json"]) {
+    const file = path.join(process.cwd(), "public", "data", name);
+    if (existsSync(file)) {
+      return JSON.parse(readFileSync(file, "utf-8")) as BirdIndexEntry[];
+    }
+  }
+  return null;
+}
+
 /** Client search index (also generated at ingest). */
 export function loadSearchIndex(): BirdSummary[] {
-  const file = path.join(process.cwd(), "public", "data", "index.json");
-  if (!existsSync(file)) {
-    return getDatasetBirds().map(toSummary);
-  }
-  const entries = JSON.parse(readFileSync(file, "utf-8")) as BirdIndexEntry[];
-  const kept = entries.filter((e) => hasBirdImage(e.imageUrl ?? ""));
-  const slugs = new Set(kept.map((e) => e.slug));
+  const entries = readSearchIndexEntries();
+  if (entries) return entriesToSummaries(entries);
+  return getDatasetBirds().map(toSummary);
+}
 
-  return kept.map((e) => ({
-    id: e.slug,
-    slug: e.slug,
-    name: e.name,
-    scientificName: e.scientificName,
-    region: e.region ?? "",
-    imageUrl: e.imageUrl ?? "",
-    colorFamilies: e.colorFamilies,
-    preview: e.preview?.length ? e.preview : ["#64748B"],
-    palette: e.palette?.length ? e.palette : [{ hex: "#64748B", share: 100 }],
-    colors: e.colors ?? [],
-    similar: (e.similar ?? []).filter((s) => slugs.has(s)),
-  }));
+export function loadManifest(): DataManifest | null {
+  const file = path.join(process.cwd(), "public", "data", "manifest.json");
+  if (!existsSync(file)) return null;
+  return JSON.parse(readFileSync(file, "utf-8")) as DataManifest;
+}
+
+export function loadInitialPage(): BirdSummary[] {
+  const pageFile = path.join(
+    process.cwd(),
+    "public",
+    "data",
+    "pages",
+    "page-1.json",
+  );
+  if (existsSync(pageFile)) {
+    return JSON.parse(readFileSync(pageFile, "utf-8")) as BirdSummary[];
+  }
+  return loadSearchIndex().slice(0, 120);
 }

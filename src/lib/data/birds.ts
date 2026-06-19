@@ -1,6 +1,13 @@
 import { cache } from "react";
-import type { BirdDetail, BirdSummary } from "@/types/bird";
-import { getDatasetBirds, loadSearchIndex, toDetail, toSummary } from "./dataset";
+import type { BirdDetail, BirdSummary, DataManifest } from "@/types/bird";
+import {
+  getDatasetBirds,
+  loadInitialPage,
+  loadManifest,
+  loadSearchIndex,
+  toDetail,
+  toSummary,
+} from "./dataset";
 import { isFirestoreConfigured } from "@/lib/firebase/admin";
 
 /**
@@ -38,4 +45,28 @@ export const getBirdSlugs = cache((): string[] => {
     return fromIndex.map((b) => b.slug);
   }
   return getDatasetBirds().map((b) => b.slug);
+});
+
+export type HomeInitialData = {
+  manifest: DataManifest;
+  initialBirds: BirdSummary[];
+};
+
+export const getHomeInitialData = cache(async (): Promise<HomeInitialData> => {
+  const manifest = loadManifest();
+  if (manifest) {
+    return { manifest, initialBirds: loadInitialPage() };
+  }
+
+  const all = await getBirds();
+  return {
+    manifest: {
+      version: 1,
+      total: all.length,
+      pageSize: all.length,
+      pageCount: 1,
+      generatedAt: "",
+    },
+    initialBirds: all,
+  };
 });

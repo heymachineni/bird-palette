@@ -1,0 +1,37 @@
+import type { MetadataRoute } from "next";
+import { getBirdSlugs } from "@/lib/data/birds";
+
+const BASE_URL =
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://birdpalette.web.app";
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const now = new Date();
+  const slugs = getBirdSlugs();
+
+  return [
+    {
+      url: BASE_URL,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 1,
+    },
+    {
+      url: `${BASE_URL}/perch`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${BASE_URL}/privacy`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    ...slugs.map((slug) => ({
+      url: `${BASE_URL}/birds/${slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+  ];
+}

@@ -16,12 +16,11 @@ import {
   buildThemeFromPlumage,
   colorFamiliesFrom,
   passesWcagAA,
-  previewHexes,
 } from "../src/lib/color/plumage";
+import { writePublicBirdData } from "./lib/write-public-data";
 import type { BirdRecord } from "./bird-record";
 
 const DATASET = path.join(process.cwd(), "prisma", "seed", "dataset.json");
-const INDEX = path.join(process.cwd(), "public", "data", "index.json");
 
 async function main() {
   const { proportionsPath, colorGroupsPath } = await ensureHbwExtracted();
@@ -61,17 +60,6 @@ async function main() {
     updated++;
   }
 
-  const index = birds.map((b) => ({
-    slug: b.slug,
-    name: b.name,
-    scientificName: b.scientificName,
-    region: b.region,
-    imageUrl: b.imageUrl,
-    colorFamilies: b.colorFamilies,
-    preview: previewHexes(b.colors),
-    palette: b.colors.map((c) => ({ hex: c.hex, share: c.share })),
-  }));
-
   await writeFile(
     DATASET,
     JSON.stringify(
@@ -85,7 +73,7 @@ async function main() {
       2,
     ),
   );
-  await writeFile(INDEX, JSON.stringify(index));
+  await writePublicBirdData(birds);
 
   console.log(`✓ Updated colors for ${updated} birds (${missing} not in HBW index)\n`);
 }

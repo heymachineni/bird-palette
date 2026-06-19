@@ -1,66 +1,93 @@
-# Nature Palette
-
-Copy real bird color combinations into your designs. Search by color or browse birds — see plumage palettes and preview them on UI components.
+# Bird Palette
 
 **Live:** [birdpalette.web.app](https://birdpalette.web.app)
 
-## Stack
+Bird Palette is a visual catalog of real bird plumage colors. Every species is a color combination pulled from nature: browse birds, search by name or exact hex, open a palette, copy swatches or CSS, and preview how those colors feel on UI.
 
-- Next.js 15 (static export) · TypeScript · Tailwind · shadcn/ui
-- `dataset.json` + `public/data/index.json` (production) · Firestore (optional catalog DB)
-- Images in `public/birds/` · GitHub Actions → Firebase Hosting
+Built for exploration and inspiration, not as a generic palette generator.
 
-## Local development
+---
 
-```bash
-npm install
-npm run dev
-```
+## What it is
 
-Production data path (same as hosting):
+- **2,079 birds** today (growing toward the full HBW dataset of ~10,290 species)
+- Each bird has a **proportional color bar**, named swatches, share percentages, and a **copy-ready palette**
+- **Search** by common name, scientific name, color family, or exact hex code
+- **Modal detail view** with Wikipedia summary, palette study, and an “In use” MUI dashboard preview
+- Photos from **BirdNET** and **iNaturalist**; color data from the **HBW Dryad** research dataset
 
-```bash
-USE_JSON_DATA=true npm run dev
-```
+Not for commercial use. Educational and exploratory. See [/perch](https://birdpalette.web.app/perch) for the story and data credits.
 
-## Scripts
+---
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start dev server |
-| `npm run build:hosting` | Static export for Firebase Hosting |
-| `npm run deploy:hosting` | Build + deploy locally |
-| `npm run ingest` | Kaggle or cached images → plumage colors → dataset |
-| `npm run refresh-colors` | Re-extract plumage from existing cutouts |
-| `npm run audit-colors` | QA expected color families |
-| `npm run seed:firestore` | Upload `dataset.json` → Firestore |
-
-### Kaggle images (optional)
-
-Download [Birds 525 Species](https://www.kaggle.com/datasets/gpiosenka/100-bird-species), then:
-
-```bash
-KAGGLE_DATA_DIR="/path/to/100-bird-species" npm run ingest
-```
-
-Without `KAGGLE_DATA_DIR`, ingest uses existing `public/birds/*.webp`.
-
-## Environment
-
-Copy `.env.example` → `.env`:
+## How it works
 
 ```
-FIREBASE_SERVICE_ACCOUNT_PATH="birdpalette-firebase-adminsdk.json"
-NEXT_PUBLIC_APP_URL="https://birdpalette.web.app"
+HBW color proportions  →  build script  →  dataset.json + index.json
+BirdNET / iNaturalist  →  photo resolver  →  image URLs per species
+                              ↓
+                    Static Next.js export
+                              ↓
+                    Firebase Hosting (birdpalette.web.app)
 ```
 
-## Data model (v2)
+1. **Build time** — `npm run build:hbw` reads HBW illustration color data, resolves photos, computes similar palettes, and writes `prisma/seed/dataset.json` plus `public/data/index.json`.
+2. **Deploy time** — `npm run build:hosting` static-exports the site (home grid, ~2k bird pages, `/perch`, `/privacy`) into `out/`.
+3. **Runtime** — the live site is fully static. No backend, no accounts, no analytics. Bird photos and Wikipedia blurbs are fetched **from your browser** directly to BirdNET, iNaturalist, and Wikipedia when you open a bird.
 
-Each bird in `prisma/seed/dataset.json`:
+---
 
-- `colors[]` — plumage only (hex, family, share %)
-- `colorFamilies[]` — for search
-- `theme` — UI neutrals + primary/accent (not shown as bird colors)
-- `similar[]` — palette-matched birds
+## What we built
 
-Firestore collection `birds` uses the same document shape.
+| Area | Detail |
+|------|--------|
+| **Data pipeline** | HBW Dryad ingest, BirdNET + iNaturalist photos, birds without photos excluded |
+| **Search** | Text + color-family tokens; exact hex match via picker or `#RRGGBB` |
+| **Bird detail** | Modal-first UX, draggable palette bar on mobile (haptic on Android; best-effort on iOS) |
+| **In use** | MUI dashboard preview themed with the bird’s palette |
+| **Info pages** | `/perch` (about), `/privacy` |
+| **Hosting** | GitHub Actions → Firebase (`birdpalette` project) |
+
+---
+
+## Scaling to ~10,290 birds
+
+**Current approach (static JSON, not Firestore in production):**
+
+| | Pros | Cons |
+|---|------|------|
+| **Static `index.json` + export** (what we use now) | Fast after load, works offline on CDN, no server cost, matches privacy policy | Home page embeds the full search index at build time (~4 MB today; ~20 MB at 10k birds). First visit download grows; build/deploy time increases (~10k static HTML pages) |
+| **Firestore at runtime** | Could paginate and load birds on demand; smaller initial payload | Needs Firebase reads (cost + latency), client SDK, network on every browse, conflicts with “we collect nothing” unless carefully scoped; more moving parts |
+
+**Recommendation:** stay on static JSON for the public site. If 10k feels slow, split the index (e.g. lightweight list + fetch full palette on modal open) before moving to Firestore.
+
+Firestore in this repo is **optional** for local/dev seeding only (`npm run seed:firestore`). Production hosting uses `USE_JSON_DATA=true`.
+
+---
+
+## Developer commands
+
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Local dev (dataset.json) |
+| `USE_JSON_DATA=true npm run dev` | Same data path as production |
+| `npm run build:hbw -- --limit 2100` | Rebuild bird dataset + search index |
+| `npm run build:hosting` | Static export to `out/` |
+| `npm run deploy:hosting` | Build + deploy to Firebase |
+
+See [docs/DEPLOY.md](docs/DEPLOY.md) for CI and Firebase setup.
+
+---
+
+## Data sources
+
+- [HBW Dryad dataset](https://doi.org/10.5061/dryad.70rxwdc6s) — plumage color proportions
+- [BirdNET](https://birdnet.cornell.edu/) — species photos
+- [iNaturalist](https://www.inaturalist.org/) — species photos
+- [Wikipedia](https://www.wikipedia.org/) — bird descriptions (client-side)
+
+---
+
+## Contact
+
+Questions or feedback: [heymachineni@gmail.com](mailto:heymachineni@gmail.com) · Built by [Chandu Machineni](https://chandumachineni.com/)

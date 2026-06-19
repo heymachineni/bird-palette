@@ -126,6 +126,7 @@ export async function resolveBirdPhoto(
   opts: {
     fetchPhotos: boolean;
     commonName?: string;
+    refreshCache?: boolean;
   },
 ): Promise<string> {
   const key = scientificName.toLowerCase();
@@ -144,6 +145,7 @@ export async function resolveBirdPhoto(
       }
     } else if (
       opts.fetchPhotos &&
+      opts.refreshCache &&
       isBirdNetImageUrl(cached) &&
       (await isBirdNetPlaceholder(cached))
     ) {
@@ -232,6 +234,7 @@ export async function createPhotoResolver(opts: {
       const url = await resolveBirdPhoto(scientificName, cache, {
         fetchPhotos: opts.fetchPhotos,
         commonName,
+        refreshCache: opts.refreshCache,
       });
 
       if (

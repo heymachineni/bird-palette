@@ -42,7 +42,16 @@ export type BirdDetail = BirdSummary & {
   wcagAA: boolean;
 };
 
-/** Slim index entry for client-side search (public/data/index.json). */
+/** Paginated static data manifest (public/data/manifest.json). */
+export type DataManifest = {
+  version: 1;
+  total: number;
+  pageSize: number;
+  pageCount: number;
+  generatedAt: string;
+};
+
+/** Slim index entry for client-side search (public/data/search-index.json). */
 export type BirdIndexEntry = {
   slug: string;
   name: string;
