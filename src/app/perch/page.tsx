@@ -52,30 +52,6 @@ export default function PerchPage() {
           </p>
         </section>
 
-        <aside className="mt-8 overflow-hidden rounded-2xl border border-border/70 bg-[#f3f0ea]">
-          <div className="flex">
-            <div
-              className="w-1 shrink-0 self-stretch"
-              aria-hidden
-              style={{
-                background:
-                  "linear-gradient(to bottom, #b8c9b8 0%, #c9c4b8 45%, #b8c4cf 100%)",
-              }}
-            />
-            <div className="px-5 py-5 sm:px-6">
-              <h2 className="font-serif text-lg tracking-tight text-foreground">
-                A note on color
-              </h2>
-              <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
-                Palettes are built from ornithological plumage data. Photos are
-                from the field. Birds change with season, sex, and age, so what
-                you see in the image may not line up with every swatch. That is
-                expected, not an error.
-              </p>
-            </div>
-          </div>
-        </aside>
-
         <section className="mt-12">
           <h2 className="font-serif text-2xl tracking-tight text-foreground">
             Notes
@@ -90,6 +66,15 @@ export default function PerchPage() {
             to email <InfoEmailLink email="heymachineni@gmail.com" />.
           </p>
         </section>
+
+        <aside className="mt-8 rounded-[24px] border border-border/70 bg-[#f3f0ea] px-5 py-5 sm:rounded-[28px] sm:px-6">
+          <p className="text-[15px] leading-relaxed text-muted-foreground">
+            Palettes are built from ornithological plumage data. Photos are
+            from the field. Birds change with season, sex, and age, so what
+            you see in the image may not line up with every swatch. That is
+            expected, not an error.
+          </p>
+        </aside>
 
         <section className="mt-12">
           <h2 className="font-serif text-2xl tracking-tight text-foreground">
