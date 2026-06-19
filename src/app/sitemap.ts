@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { getBirdSlugs } from "@/lib/data/birds";
 
+export const dynamic = "force-static";
+
 const BASE_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "https://birdpalette.web.app";
 
