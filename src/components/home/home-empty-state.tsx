@@ -15,14 +15,14 @@ function emptyCopy(pickedColor: string | null, query: string) {
   const trimmedQuery = query.trim();
 
   if (pickedColor && trimmedQuery) {
-    return "Try a nearby shade or a color family below.";
+    return "Try a nearby shade or a broader color family.";
   }
 
   if (pickedColor) {
-    return "These shades and families appear on birds in the collection.";
+    return "Pick a nearby shade or color family to keep exploring.";
   }
 
-  return "Try a color name, or explore a family below.";
+  return "Search by color name, or browse a family.";
 }
 
 function SuggestionPill({
@@ -134,7 +134,7 @@ export function HomeEmptyState({
       {nearbyHexes.length > 0 && (
         <section className="w-full text-left">
           <h3 className="mb-3 px-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-            Nearby colors
+            Nearby shade
           </h3>
           <div className="flex flex-wrap gap-2">
             {nearbyHexes.map((item) => (
