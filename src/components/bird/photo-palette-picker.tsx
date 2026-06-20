@@ -17,7 +17,7 @@ import {
 } from "@/lib/color/match-palette";
 import { colorDistance } from "@/lib/color/extract";
 import { paletteHaptic } from "@/lib/haptics";
-import { sampleImageUrl } from "@/lib/photos/sample-url";
+import { isSameOriginSampleUrl, sampleImageUrl } from "@/lib/photos/sample-url";
 import { cn } from "@/lib/utils";
 
 const MAX_SAMPLE_EDGE = 640;
@@ -65,8 +65,11 @@ export function PhotoPalettePicker({
     setCanPick(false);
     sampleImgRef.current = null;
 
+    const sampleSrc = sampleImageUrl(src);
     const probe = new Image();
-    probe.crossOrigin = "anonymous";
+    if (!isSameOriginSampleUrl(sampleSrc)) {
+      probe.crossOrigin = "anonymous";
+    }
     probe.referrerPolicy = "no-referrer";
 
     probe.onload = () => {
@@ -86,7 +89,7 @@ export function PhotoPalettePicker({
     };
 
     probe.onerror = () => setCanPick(false);
-    probe.src = sampleImageUrl(src);
+    probe.src = sampleSrc;
   }, [src, clearSelection]);
 
   const ensureSampleCanvas = useCallback((): CanvasRenderingContext2D | null => {

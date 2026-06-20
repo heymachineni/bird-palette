@@ -5,8 +5,6 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 echo "→ Building static site..."
-node scripts/prepare-static-export.mjs hide
-trap 'node scripts/prepare-static-export.mjs restore' EXIT
 npm run build:hosting
 
 SA="${FIREBASE_SERVICE_ACCOUNT_PATH:-}"
@@ -22,6 +20,6 @@ else
 fi
 # Cursor/VS Code sets VSCODE_CWD; firebase-tools mis-resolves template paths when it is set.
 unset VSCODE_CWD
-npx firebase deploy --only hosting --project birdpalette
+npx firebase deploy --only hosting,functions --project birdpalette
 
 echo "✓ Done: https://birdpalette.web.app"

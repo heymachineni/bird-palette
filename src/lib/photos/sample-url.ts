@@ -25,3 +25,11 @@ export function sampleImageUrl(src: string): string {
 
   return `/api/photo-sample?url=${encodeURIComponent(src)}`;
 }
+
+export function isSameOriginSampleUrl(sampleSrc: string): boolean {
+  if (sampleSrc.startsWith("/")) return true;
+  if (typeof window !== "undefined" && sampleSrc.startsWith(window.location.origin)) {
+    return true;
+  }
+  return false;
+}

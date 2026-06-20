@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "USE_JSON_DATA=true next dev",
     "build": "next build",
-    "build:hosting": "STATIC_EXPORT=true USE_JSON_DATA=true next build",
+    "build:hosting": "bash scripts/build-hosting.sh",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
