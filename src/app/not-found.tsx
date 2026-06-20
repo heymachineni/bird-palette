@@ -5,10 +5,10 @@ export default function NotFound() {
     <div className="container flex min-h-[calc(100dvh-3rem)] items-center justify-center pb-32 pt-8 sm:pt-10">
       <div className="mx-auto flex w-full max-w-md flex-col items-center gap-6 text-center">
         <span
-          className="inline-flex size-14 shrink-0 items-center justify-center rounded-full ring-1 ring-inset ring-black/10 shadow-sm"
+          className="flex size-[5.25rem] shrink-0 items-center justify-center text-[3.75rem] leading-none"
           aria-hidden
         >
-          <span className="text-[1.625rem] leading-none">🪹</span>
+          🪹
         </span>
 
         <div className="space-y-2">
