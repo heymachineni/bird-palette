@@ -13,6 +13,7 @@ import { filterBirds, filterBirdsByHex } from "@/lib/search";
 import { fetchBirdPage, fetchSearchIndex } from "@/lib/data/client-birds";
 import { birdSlugFromPath } from "@/lib/bird-url";
 import { HomeSearch } from "./home-search";
+import { HomeEmptyState } from "./home-empty-state";
 import { BirdThumbnail } from "./bird-thumbnail";
 import { BirdDetailModal } from "@/components/bird/bird-detail-modal";
 
@@ -340,34 +341,27 @@ export function HomeClient({
             {hasMore && <div ref={sentinelRef} className="h-px w-full" />}
           </>
         ) : showEmpty ? (
-          <div className="flex flex-col items-center gap-5 py-24 text-center">
-            {pickedColor && (
-              <span
-                className="size-12 rounded-full ring-1 ring-inset ring-black/10"
-                style={{ backgroundColor: pickedColor }}
-              />
-            )}
-            <div className="space-y-1">
-              <p className="font-serif text-lg text-foreground">
-                No birds wear{" "}
-                {pickedColor ? (
-                  <span className="font-mono uppercase">{pickedColor}</span>
-                ) : (
-                  <span>“{query}”</span>
-                )}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Try a different or nearby color.
-              </p>
+          searchIndex ? (
+            <HomeEmptyState
+              pickedColor={pickedColor}
+              query={query}
+              birds={searchIndex}
+              onPickColor={setPickedColor}
+              onQueryChange={setQuery}
+              onReset={reset}
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-5 py-24 text-center">
+              <p className="font-serif text-lg text-foreground">No birds found</p>
+              <button
+                type="button"
+                onClick={reset}
+                className="rounded-full border border-border bg-background px-5 py-2 text-sm text-foreground transition-colors hover:bg-muted"
+              >
+                Show all birds
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={reset}
-              className="rounded-full border border-border bg-background px-5 py-2 text-sm text-foreground transition-colors hover:bg-muted"
-            >
-              Show all birds
-            </button>
-          </div>
+          )
         ) : null}
       </section>
 
