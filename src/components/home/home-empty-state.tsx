@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { BirdSummary } from "@/types/bird";
 import {
   buildColorIndex,
   formatBirdCount,
   formatFamilyLabel,
   getMainFamilySuggestions,
+  MAIN_FAMILY_INITIAL_COUNT,
   suggestNearbyHexes,
 } from "@/lib/color/nearby-colors";
 import { cn } from "@/lib/utils";
@@ -79,6 +80,7 @@ export function HomeEmptyState({
   onReset: () => void;
 }) {
   const trimmedQuery = query.trim();
+  const [familiesExpanded, setFamiliesExpanded] = useState(false);
 
   const { nearbyHexes, mainFamilies } = useMemo(() => {
     const index = buildColorIndex(birds);
@@ -86,9 +88,18 @@ export function HomeEmptyState({
       nearbyHexes: pickedColor
         ? suggestNearbyHexes(pickedColor, index.hexStats)
         : [],
-      mainFamilies: getMainFamilySuggestions(index.familyStats, pickedColor),
+      mainFamilies: getMainFamilySuggestions(index.familyStats),
     };
   }, [birds, pickedColor]);
+
+  useEffect(() => {
+    setFamiliesExpanded(false);
+  }, [pickedColor, query]);
+
+  const visibleFamilies = familiesExpanded
+    ? mainFamilies
+    : mainFamilies.slice(0, MAIN_FAMILY_INITIAL_COUNT);
+  const hiddenFamilyCount = mainFamilies.length - MAIN_FAMILY_INITIAL_COUNT;
 
   const subtitle = emptyCopy(pickedColor, query);
 
@@ -98,7 +109,7 @@ export function HomeEmptyState({
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col items-center gap-8 py-20 text-center">
+    <div className="mx-auto flex w-full max-w-md flex-col items-center gap-6 pt-6 pb-20 text-center sm:pt-8">
       {pickedColor && (
         <span
           className="size-14 rounded-full ring-1 ring-inset ring-black/10 shadow-sm"
@@ -131,7 +142,7 @@ export function HomeEmptyState({
         <p className="text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
       </div>
 
-      {nearbyHexes.length > 0 && (
+      {pickedColor && nearbyHexes.length > 0 && (
         <section className="w-full text-left">
           <h3 className="mb-3 px-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
             Nearby shade
@@ -155,7 +166,7 @@ export function HomeEmptyState({
           Color families
         </h3>
         <div className="flex flex-wrap gap-2">
-          {mainFamilies.map((item) => (
+          {visibleFamilies.map((item) => (
             <SuggestionPill
               key={item.family}
               hex={item.sampleHex}
@@ -167,6 +178,15 @@ export function HomeEmptyState({
               onClick={() => tryFamily(item.family)}
             />
           ))}
+          {!familiesExpanded && hiddenFamilyCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setFamiliesExpanded(true)}
+              className="inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              +{hiddenFamilyCount} more
+            </button>
+          )}
         </div>
       </section>
 

@@ -58,19 +58,17 @@ export default function PerchPage() {
             make the site more accurate and smoother over time.
           </p>
           <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
+            Each palette is sampled from the bird&apos;s photo, with real light
+            and real pose. A bit of background can slip in sometimes, and I am
+            still tuning that. If you want a specific shade from the bird itself,
+            open any bird and hover the photo. You can copy the color straight
+            from the image.
+          </p>
+          <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
             If you have questions, suggestions, or just want to talk, feel free
             to email <InfoEmailLink email="heymachineni@gmail.com" />.
           </p>
         </section>
-
-        <aside className="mt-8 rounded-[24px] border border-border/70 bg-[#f3f0ea] px-5 py-5 sm:rounded-[28px] sm:px-6">
-          <p className="text-[15px] leading-relaxed text-muted-foreground">
-            Palettes are extracted from each bird&apos;s photo — background
-            removed, then colors sampled from the plumage pixels. Photos are
-            from the field, so lighting, pose, and season can shift what you
-            see compared to a field-guide illustration. That is expected.
-          </p>
-        </aside>
 
         <section className="mt-12">
           <h2 className="font-serif text-2xl tracking-tight text-foreground">

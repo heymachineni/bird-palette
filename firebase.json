@@ -23,7 +23,10 @@
       },
       {
         "source": "/api/photo-sample",
-        "function": "photoSample"
+        "function": {
+          "functionId": "photoSample",
+          "region": "us-central1"
+        }
       }
     ],
     "headers": [

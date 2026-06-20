@@ -3,22 +3,19 @@ import Link from "next/link";
 export function InfoPageFooter() {
   return (
     <footer className="mt-16 border-t border-border pt-8">
-      <div className="flex min-h-5 items-center justify-between">
+      <div className="flex items-center gap-4">
         <Link
           href="/privacy"
           className="text-sm text-muted-foreground/60 transition-colors hover:text-foreground"
         >
           Privacy
         </Link>
-
-        <a
-          href="https://chandumachineni.com/"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href="/terms"
           className="text-sm text-muted-foreground/60 transition-colors hover:text-foreground"
         >
-          Made by <span className="font-medium">Chandu Machineni</span>
-        </a>
+          Terms
+        </Link>
       </div>
     </footer>
   );

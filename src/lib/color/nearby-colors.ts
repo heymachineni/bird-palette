@@ -20,19 +20,21 @@ export type ColorIndex = {
   familyStats: FamilyColorStat[];
 };
 
-/** Ten primary families shown in empty-state suggestions (fixed order). */
+/** Ten primary families shown in empty-state suggestions (fixed display order). */
 export const MAIN_FAMILIES = [
+  "orange",
   "blue",
-  "green",
+  "pink",
+  "purple",
   "black",
   "white",
   "brown",
   "red",
-  "pink",
+  "green",
   "yellow",
-  "orange",
-  "purple",
 ] as const;
+
+export const MAIN_FAMILY_INITIAL_COUNT = 4;
 
 export type MainFamily = (typeof MAIN_FAMILIES)[number];
 
@@ -134,35 +136,14 @@ export function suggestNearbyHexes(
 /** The ten primary families with canonical swatches and live bird counts. */
 export function getMainFamilySuggestions(
   familyStats: FamilyColorStat[],
-  targetHex: string | null,
 ): FamilyColorStat[] {
   const countByFamily = new Map(
     familyStats.map((stat) => [stat.family, stat.birdCount]),
   );
 
-  const list: FamilyColorStat[] = MAIN_FAMILIES.map((family) => ({
+  return MAIN_FAMILIES.map((family) => ({
     family,
     birdCount: countByFamily.get(family) ?? 0,
     sampleHex: MAIN_FAMILY_COLORS[family],
   }));
-
-  if (!targetHex) return list;
-
-  const targetFamily = nameColor(targetHex);
-  if (!(MAIN_FAMILIES as readonly string[]).includes(targetFamily)) {
-    return list;
-  }
-
-  const match = list.find((stat) => stat.family === targetFamily);
-  if (!match) return list;
-
-  return [match, ...list.filter((stat) => stat.family !== targetFamily)];
-}
-
-/** @deprecated Use getMainFamilySuggestions */
-export function orderFamilySuggestions(
-  targetHex: string | null,
-  familyStats: FamilyColorStat[],
-): FamilyColorStat[] {
-  return getMainFamilySuggestions(familyStats, targetHex);
 }

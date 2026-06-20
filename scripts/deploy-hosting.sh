@@ -20,7 +20,7 @@ else
 fi
 # Cursor/VS Code sets VSCODE_CWD; firebase-tools mis-resolves template paths when it is set.
 unset VSCODE_CWD
-npx firebase deploy --only hosting --project birdpalette
+npm install --prefix functions --no-audit --no-fund
+npx firebase deploy --only hosting,functions:photoSample --project birdpalette
 
-echo "✓ Hosting: https://birdpalette.web.app"
-echo "  Photo proxy function: npm run deploy:functions"
+echo "✓ https://birdpalette.web.app"

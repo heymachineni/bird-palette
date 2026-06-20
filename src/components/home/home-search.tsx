@@ -49,7 +49,7 @@ export function HomeSearch({
           />
         )}
 
-        {filtering && (
+        {filtering && matchCount > 0 && (
           <div className="mb-2 flex justify-center">
             <span className="rounded-full border border-border bg-background/90 px-3 py-1 text-xs text-muted-foreground shadow-sm backdrop-blur">
               <span className="font-medium text-foreground">{matchCount}</span>{" "}
