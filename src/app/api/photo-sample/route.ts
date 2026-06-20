@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isPhotoSampleHost } from "@/lib/photos/photo-sample-hosts";
 
-const ALLOWED_HOSTS = new Set([
-  "birdnet.cornell.edu",
-  "cdn.download.ams.birds.cornell.edu",
-  "inaturalist-open-data.s3.amazonaws.com",
-  "static.inaturalist.org",
-  "upload.wikimedia.org",
-  "commons.wikimedia.org",
-]);
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const raw = req.nextUrl.searchParams.get("url");
@@ -22,7 +16,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "invalid url" }, { status: 400 });
   }
 
-  if (parsed.protocol !== "https:" || !ALLOWED_HOSTS.has(parsed.hostname)) {
+  if (parsed.protocol !== "https:" || !isPhotoSampleHost(parsed.hostname)) {
     return NextResponse.json({ error: "host not allowed" }, { status: 403 });
   }
 

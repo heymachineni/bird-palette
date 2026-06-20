@@ -61,9 +61,36 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(4px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "toast-in": {
+          from: {
+            opacity: "0",
+            transform: "translateX(-50%) translateY(6px) scale(0.96)",
+          },
+          to: {
+            opacity: "1",
+            transform: "translateX(-50%) translateY(0) scale(1)",
+          },
+        },
+        "toast-out": {
+          from: {
+            opacity: "1",
+            transform: "translateX(-50%) translateY(0) scale(1)",
+          },
+          to: {
+            opacity: "0",
+            transform: "translateX(-50%) translateY(4px) scale(0.96)",
+          },
+        },
+        "toast-pill-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
       },
       animation: {
         "fade-in": "fade-in 0.4s ease-out both",
+        "toast-in": "toast-in 0.28s ease-out both",
+        "toast-out": "toast-out 0.28s ease-in both",
+        "toast-pill-in": "toast-pill-in 0.24s ease-out both",
       },
     },
   },

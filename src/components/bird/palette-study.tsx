@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { toast } from "sonner";
+import { toastCopiedHex, toastError } from "@/lib/copy-color-toast";
 import type { PlumageColorData } from "@/types/bird";
 import { bestTextOn } from "@/lib/color/accessibility";
 import { paletteHaptic } from "@/lib/haptics";
@@ -69,17 +69,17 @@ export function PaletteStudy({ colors }: { colors: PlumageColorData[] }) {
   const sorted = [...colors].sort((a, b) => b.share - a.share);
   const total = sorted.reduce((sum, c) => sum + c.share, 0) || 1;
 
-  const copy = async (value: string, message: string) => {
+  const copy = async (value: string) => {
     try {
       await navigator.clipboard.writeText(value);
       setCopied(value);
-      toast.success(message);
+      toastCopiedHex(value);
       window.setTimeout(
         () => setCopied((c) => (c === value ? null : c)),
         1200,
       );
     } catch {
-      toast.error("Couldn't copy");
+      toastError("Couldn't copy");
     }
   };
 
@@ -150,7 +150,7 @@ export function PaletteStudy({ colors }: { colors: PlumageColorData[] }) {
     if (!drag.moved) {
       const index = swatchIndexAt(e.clientX);
       if (index !== null) {
-        copy(sorted[index].hex, `Copied ${sorted[index].hex.toUpperCase()}`);
+        copy(sorted[index].hex);
         paletteHaptic("copy");
       }
     }
@@ -176,7 +176,7 @@ export function PaletteStudy({ colors }: { colors: PlumageColorData[] }) {
             Palette
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {colors.length} colors
+            {colors.length} primary color codes from image
           </p>
         </div>
 
@@ -247,7 +247,7 @@ export function PaletteStudy({ colors }: { colors: PlumageColorData[] }) {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    copy(c.hex, `Copied ${c.hex.toUpperCase()}`);
+                    copy(c.hex);
                     paletteHaptic("copy");
                   }
                 }}
@@ -283,7 +283,7 @@ export function PaletteStudy({ colors }: { colors: PlumageColorData[] }) {
               <li key={`row-${c.hex}-${i}`}>
                 <button
                   type="button"
-                  onClick={() => copy(c.hex, `Copied ${c.hex.toUpperCase()}`)}
+                  onClick={() => copy(c.hex)}
                   className="group flex w-full items-center gap-3 rounded-xl bg-muted/60 p-2.5 text-left transition-all hover:bg-muted"
                 >
                   <span

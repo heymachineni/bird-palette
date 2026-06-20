@@ -7,17 +7,29 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { toast } from "sonner";
-import {
-  objectCoverPixelAt,
-  rgbToHex,
-} from "@/lib/color/match-palette";
+import { toastCopiedHex, toastError } from "@/lib/copy-color-toast";
+import { objectCoverPixelAt, rgbToHex } from "@/lib/color/match-palette";
 import { paletteHaptic } from "@/lib/haptics";
-import { isSameOriginSampleUrl, sampleImageUrl } from "@/lib/photos/sample-url";
+import {
+  loadSampleProbeWithRetry,
+} from "@/lib/photos/load-sample-image";
+import { sampleProbeUrls } from "@/lib/photos/sample-url";
 import { cn } from "@/lib/utils";
 
 const MAX_SAMPLE_EDGE = 640;
 const HOLD_MS = 280;
+
+/** Hover pill layout — all spacing in px for predictable positioning. */
+const HOVER_PILL = {
+  padX: 8,
+  gap: 6,
+  swatch: 12,
+  fontSize: 10,
+  offsetX: 10,
+  offsetY: 10,
+  edge: 8,
+  height: 24,
+} as const;
 
 type Preview = {
   hex: string;
@@ -32,6 +44,10 @@ type PhotoPalettePickerProps = {
   priority?: boolean;
 };
 
+function isHoverPointer(type: string) {
+  return type === "mouse" || type === "pen";
+}
+
 export function PhotoPalettePicker({
   src,
   alt,
@@ -45,45 +61,39 @@ export function PhotoPalettePicker({
   const touchHoldingRef = useRef(false);
 
   const [loaded, setLoaded] = useState(false);
-  const [canPick, setCanPick] = useState(false);
+  const [sampleState, setSampleState] = useState<
+    "loading" | "ready" | "failed"
+  >("loading");
   const [preview, setPreview] = useState<Preview | null>(null);
   const [coarsePointer, setCoarsePointer] = useState(false);
+
+  const canPick = sampleState === "ready";
 
   useEffect(() => {
     setCoarsePointer(window.matchMedia("(pointer: coarse)").matches);
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     setPreview(null);
     setLoaded(false);
-    setCanPick(false);
+    setSampleState("loading");
     sampleImgRef.current = null;
+    sampleCanvasRef.current = null;
 
-    const sampleSrc = sampleImageUrl(src);
-    const probe = new Image();
-    if (!isSameOriginSampleUrl(sampleSrc)) {
-      probe.crossOrigin = "anonymous";
-    }
-    probe.referrerPolicy = "no-referrer";
-
-    probe.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 2;
-      canvas.height = 2;
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      if (!ctx) return;
-      try {
-        ctx.drawImage(probe, 0, 0, 2, 2);
-        ctx.getImageData(0, 0, 1, 1);
-        sampleImgRef.current = probe;
-        setCanPick(true);
-      } catch {
-        setCanPick(false);
+    void loadSampleProbeWithRetry(sampleProbeUrls(src)).then((img) => {
+      if (cancelled) return;
+      if (img) {
+        sampleImgRef.current = img;
+        setSampleState("ready");
+      } else {
+        setSampleState("failed");
       }
-    };
+    });
 
-    probe.onerror = () => setCanPick(false);
-    probe.src = sampleSrc;
+    return () => {
+      cancelled = true;
+    };
   }, [src]);
 
   const ensureSampleCanvas = useCallback((): CanvasRenderingContext2D | null => {
@@ -166,10 +176,10 @@ export function PhotoPalettePicker({
   const copyHex = useCallback(async (hex: string) => {
     try {
       await navigator.clipboard.writeText(hex);
-      toast.success(`Copied ${hex}`);
+      toastCopiedHex(hex);
       paletteHaptic("copy");
     } catch {
-      toast.error("Couldn't copy");
+      toastError("Couldn't copy");
     }
   }, []);
 
@@ -180,19 +190,19 @@ export function PhotoPalettePicker({
     }
   };
 
-  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!canPick || e.pointerType !== "mouse") return;
+  const onHoverPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!canPick || !isHoverPointer(e.pointerType)) return;
     updatePreview(e.clientX, e.clientY);
   };
 
   const onPointerLeave = () => {
     clearHoldTimer();
     touchHoldingRef.current = false;
-    if (!coarsePointer) setPreview(null);
+    setPreview(null);
   };
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!canPick || e.pointerType === "mouse") return;
+    if (!canPick || isHoverPointer(e.pointerType)) return;
     clearHoldTimer();
     touchHoldingRef.current = false;
     containerRef.current?.setPointerCapture(e.pointerId);
@@ -204,13 +214,13 @@ export function PhotoPalettePicker({
   };
 
   const onTouchPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!canPick || e.pointerType === "mouse") return;
+    if (!canPick || isHoverPointer(e.pointerType)) return;
     if (!touchHoldingRef.current) return;
     updatePreview(e.clientX, e.clientY);
   };
 
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === "mouse") return;
+    if (isHoverPointer(e.pointerType)) return;
 
     clearHoldTimer();
     containerRef.current?.releasePointerCapture(e.pointerId);
@@ -230,6 +240,25 @@ export function PhotoPalettePicker({
     if (hex) void copyHex(hex);
   };
 
+  const pillLeft = preview
+    ? Math.min(
+        Math.max(
+          HOVER_PILL.edge,
+          preview.x + HOVER_PILL.offsetX,
+        ),
+        (containerRef.current?.clientWidth ?? 0) -
+          HOVER_PILL.edge -
+          120,
+      )
+    : 0;
+
+  const pillTop = preview
+    ? Math.max(
+        HOVER_PILL.edge,
+        preview.y - HOVER_PILL.offsetY - HOVER_PILL.height,
+      )
+    : 0;
+
   return (
     <div className={cn("rounded-2xl bg-muted/70 p-2", className)}>
       <div
@@ -238,8 +267,15 @@ export function PhotoPalettePicker({
           "relative aspect-[4/3] w-full overflow-hidden rounded-xl",
           canPick && "cursor-crosshair touch-none",
         )}
+        aria-label={
+          canPick
+            ? coarsePointer
+              ? "Bird photo — hold for color codes, release to copy"
+              : "Bird photo — hover for color codes, click to copy"
+            : alt
+        }
         onPointerMove={(e) => {
-          onPointerMove(e);
+          onHoverPointerMove(e);
           onTouchPointerMove(e);
         }}
         onPointerLeave={onPointerLeave}
@@ -249,7 +285,7 @@ export function PhotoPalettePicker({
         onClick={onClick}
       >
         {!loaded && (
-          <div aria-hidden className="absolute inset-0 bg-muted shimmer" />
+          <div aria-hidden className="absolute inset-0 z-[1] bg-muted shimmer" />
         )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -258,8 +294,9 @@ export function PhotoPalettePicker({
           decoding="async"
           fetchPriority={priority ? "high" : "auto"}
           referrerPolicy="no-referrer"
+          draggable={false}
           className={cn(
-            "absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-300",
+            "pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center transition-opacity duration-300",
             loaded ? "opacity-100" : "opacity-0",
           )}
           onLoad={() => setLoaded(true)}
@@ -268,15 +305,24 @@ export function PhotoPalettePicker({
 
         {preview && (
           <div
-            className="pointer-events-none absolute z-10 flex items-center gap-2 rounded-full border border-border/80 bg-background/95 px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-wide text-foreground shadow-md backdrop-blur"
+            className="pointer-events-none absolute z-10 flex items-center rounded-full border border-border/80 bg-background/95 font-mono uppercase tracking-wide text-foreground shadow-md backdrop-blur"
             style={{
-              left: Math.max(8, Math.min(preview.x + 12, (containerRef.current?.clientWidth ?? 0) - 100)),
-              top: Math.max(8, Math.min(preview.y - 36, (containerRef.current?.clientHeight ?? 0) - 40)),
+              left: pillLeft,
+              top: pillTop,
+              height: HOVER_PILL.height,
+              paddingLeft: HOVER_PILL.padX,
+              paddingRight: HOVER_PILL.padX,
+              gap: HOVER_PILL.gap,
+              fontSize: HOVER_PILL.fontSize,
             }}
           >
             <span
-              className="size-3.5 shrink-0 rounded-full ring-1 ring-inset ring-black/10"
-              style={{ backgroundColor: preview.hex }}
+              className="shrink-0 rounded-full ring-1 ring-inset ring-black/10"
+              style={{
+                width: HOVER_PILL.swatch,
+                height: HOVER_PILL.swatch,
+                backgroundColor: preview.hex,
+              }}
               aria-hidden
             />
             {preview.hex}
@@ -284,13 +330,21 @@ export function PhotoPalettePicker({
         )}
       </div>
 
-      {canPick ? (
+      {sampleState === "ready" ? (
         <p className="mt-2 px-1 text-[11px] leading-snug text-muted-foreground">
           {coarsePointer
-            ? "Hold to preview · release to copy"
-            : "Hover for hex · click to copy"}
+            ? "Hold on the image for color codes"
+            : "Hover on the image for color codes"}
         </p>
-      ) : null}
+      ) : sampleState === "loading" ? (
+        <p className="mt-2 px-1 text-[11px] leading-snug text-muted-foreground">
+          Preparing color sampling…
+        </p>
+      ) : (
+        <p className="mt-2 px-1 text-[11px] leading-snug text-muted-foreground">
+          Color sampling unavailable — refresh and try again.
+        </p>
+      )}
     </div>
   );
 }
