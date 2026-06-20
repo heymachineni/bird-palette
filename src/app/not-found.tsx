@@ -3,21 +3,23 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <div className="container flex min-h-[calc(100dvh-3rem)] items-center justify-center pb-32 pt-8 sm:pt-10">
-      <div className="mx-auto flex w-full max-w-md flex-col items-center gap-3 text-center">
-        <span
-          className="flex size-[5.25rem] shrink-0 items-center justify-center text-[3.75rem] leading-none"
-          aria-hidden
-        >
-          🪹
-        </span>
+      <div className="mx-auto flex w-full max-w-md flex-col items-center gap-6 text-center">
+        <div className="flex flex-col items-center gap-1">
+          <span
+            className="flex size-[5.25rem] shrink-0 items-center justify-center text-[3.75rem] leading-none"
+            aria-hidden
+          >
+            🪹
+          </span>
 
-        <div className="space-y-2">
-          <h1 className="font-serif text-xl tracking-tight text-foreground sm:text-2xl">
-            The birds aren&apos;t here.
-          </h1>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            They flew away.
-          </p>
+          <div className="space-y-2">
+            <h1 className="font-serif text-xl tracking-tight text-foreground sm:text-2xl">
+              The birds aren&apos;t here.
+            </h1>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              They flew away.
+            </p>
+          </div>
         </div>
 
         <Link
