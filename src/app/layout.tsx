@@ -31,8 +31,7 @@ export const metadata: Metadata = {
     default: "Bird Palette",
     template: "%s — Bird Palette",
   },
-  description:
-    "Bird color combinations for inspiration.",
+  description: "Color inspiration from nature.",
   icons: {
     icon: [
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
@@ -43,8 +42,22 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Bird Palette",
-    description: "Bird color combinations for inspiration.",
+    description: "Color inspiration from nature.",
     type: "website",
+    images: [
+      {
+        url: "/og.png",
+        width: 1024,
+        height: 682,
+        alt: "Bird Palette — color inspiration from nature",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Bird Palette",
+    description: "Color inspiration from nature.",
+    images: ["/og.png"],
   },
 };
 
