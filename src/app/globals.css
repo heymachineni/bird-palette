@@ -114,3 +114,47 @@
     }
   }
 }
+
+/* Color wheel — outside @layer so hover animation isn't overridden by Tailwind. */
+.color-wheel-frame {
+  display: block;
+  overflow: hidden;
+}
+
+.color-wheel-gradient {
+  width: 100%;
+  height: 100%;
+  background-image: conic-gradient(
+    from 0deg,
+    hsl(350 88% 58%),
+    hsl(10 92% 56%),
+    hsl(28 95% 54%),
+    hsl(45 96% 52%),
+    hsl(62 90% 50%),
+    hsl(88 78% 46%),
+    hsl(142 72% 44%),
+    hsl(168 76% 42%),
+    hsl(192 82% 46%),
+    hsl(214 88% 54%),
+    hsl(236 86% 58%),
+    hsl(258 84% 62%),
+    hsl(282 82% 62%),
+    hsl(312 84% 60%),
+    hsl(334 86% 58%),
+    hsl(350 88% 58%)
+  );
+  transform: rotate(0deg);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .color-wheel-trigger:hover .color-wheel-gradient--interactive {
+    animation: color-wheel-flow 4s linear infinite;
+  }
+}
+
+@keyframes color-wheel-flow {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { ColorPicker } from "./color-picker";
 
 /**
@@ -121,15 +122,16 @@ export function HomeSearch({
               onClick={() => setPickerOpen((o) => !o)}
               aria-label="Pick a color"
               title="Pick a color"
-              className="relative flex size-9 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-105"
+              className="color-wheel-trigger relative flex size-9 shrink-0 items-center justify-center rounded-full"
             >
-              <span
-                className="size-7 rounded-full ring-1 ring-inset ring-black/10"
-                style={{
-                  backgroundImage:
-                    "conic-gradient(from 90deg, #ef4444, #f59e0b, #eab308, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #ef4444)",
-                }}
-              />
+              <span className="color-wheel-frame size-7 rounded-full ring-1 ring-inset ring-black/10">
+                <span
+                  className={cn(
+                    "color-wheel-gradient block size-full",
+                    !pickerOpen && "color-wheel-gradient--interactive",
+                  )}
+                />
+              </span>
             </button>
           )}
         </div>
