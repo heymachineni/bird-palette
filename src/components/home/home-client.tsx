@@ -9,7 +9,7 @@ import {
   useCallback,
 } from "react";
 import type { BirdSummary, DataManifest } from "@/types/bird";
-import { filterBirds, filterBirdsByHex } from "@/lib/search";
+import { filterBirds, filterBirdsByHex, sortBirdsByColorRelevance } from "@/lib/search";
 import { fetchBirdPage, fetchSearchIndex } from "@/lib/data/client-birds";
 import { birdSlugFromPath } from "@/lib/bird-url";
 import { HomeSearch } from "./home-search";
@@ -160,7 +160,7 @@ export function HomeClient({
       if (!searchIndex) return [];
       let list = filterBirdsByHex(searchIndex, pickedColor);
       list = filterBirds(list, query);
-      return list;
+      return sortBirdsByColorRelevance(list, query, pickedColor);
     }
     return loadedBirds;
   }, [isFiltering, searchIndex, loadedBirds, query, pickedColor]);

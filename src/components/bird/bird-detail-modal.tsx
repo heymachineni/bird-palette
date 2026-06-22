@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { BirdSummary } from "@/types/bird";
 import { pillButtonClass } from "@/components/ui/pill-button";
 import { cn } from "@/lib/utils";
-import { BirdDetailContent } from "./bird-detail-content";
+import {
+  BirdDetailContent,
+  type PhotoExpandLayout,
+} from "./bird-detail-content";
 
 export function BirdDetailModal({
   bird,
@@ -23,6 +26,27 @@ export function BirdDetailModal({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const scrollRef = useRef<HTMLDivElement>(null);
+  const collapsePhotoRef = useRef<(() => void) | null>(null);
+  const [expandLayout, setExpandLayout] = useState<PhotoExpandLayout>({
+    expanded: false,
+    animating: false,
+    imageAspect: null,
+    collapsePhoto: () => {},
+  });
+
+  const onExpandLayoutChange = useCallback((layout: PhotoExpandLayout) => {
+    collapsePhotoRef.current = layout.collapsePhoto;
+    setExpandLayout(layout);
+  }, []);
+
+  useEffect(() => {
+    setExpandLayout({
+      expanded: false,
+      animating: false,
+      imageAspect: null,
+      collapsePhoto: () => {},
+    });
+  }, [bird?.slug]);
 
   const bySlug = useMemo(
     () => new Map(allBirds.map((b) => [b.slug, b])),
@@ -37,19 +61,27 @@ export function BirdDetailModal({
       .slice(0, 4);
   }, [bird, bySlug]);
 
+  const dismissOrCollapse = useCallback(() => {
+    if (expandLayout.expanded) {
+      collapsePhotoRef.current?.();
+      return;
+    }
+    onCloseRef.current();
+  }, [expandLayout.expanded]);
+
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCloseRef.current();
+      if (e.key === "Escape") dismissOrCollapse();
     };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKey);
     };
-  }, [open]);
+  }, [open, dismissOrCollapse]);
 
   useEffect(() => {
     if (open) scrollRef.current?.scrollTo({ top: 0 });
@@ -95,6 +127,8 @@ export function BirdDetailModal({
     "bg-background/95 shadow-lg backdrop-blur hover:bg-muted",
   );
 
+  const photoExpanded = expandLayout.expanded;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6"
@@ -104,52 +138,69 @@ export function BirdDetailModal({
     >
       <button
         type="button"
-        aria-label="Close"
-        onClick={onClose}
+        aria-label={photoExpanded ? "Collapse image" : "Close"}
+        onClick={dismissOrCollapse}
         className="absolute inset-0 cursor-default bg-foreground/40 backdrop-blur-[3px] animate-in fade-in"
       />
 
       <div className="relative z-10 flex w-full max-w-[1200px] justify-center">
-        {/* Desktop — icon only, 8px above panel (40px button + 8px gap) */}
-        <button
-          type="button"
-          aria-label="Close"
-          onClick={onClose}
+        {!photoExpanded ? (
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className={cn(
+              "absolute -top-12 right-0 hidden size-10 place-items-center rounded-full",
+              "border border-border bg-background/95 text-foreground shadow-lg backdrop-blur",
+              "transition-colors hover:bg-muted sm:grid",
+            )}
+          >
+            <X className="size-4" />
+          </button>
+        ) : null}
+
+        <div
           className={cn(
-            "absolute -top-12 right-0 hidden size-10 place-items-center rounded-full",
-            "border border-border bg-background/95 text-foreground shadow-lg backdrop-blur",
-            "transition-colors hover:bg-muted sm:grid",
+            "flex w-full flex-col overflow-hidden bg-background shadow-2xl shadow-black/25 duration-300 animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95",
+            photoExpanded
+              ? "max-h-[86dvh] w-full rounded-[28px] sm:rounded-[32px]"
+              : "max-h-[calc(100dvh-1.5rem)] rounded-[32px] sm:max-h-[86vh] sm:rounded-[40px]",
           )}
         >
-          <X className="size-4" />
-        </button>
-
-        <div className="flex max-h-[calc(100dvh-1.5rem)] w-full flex-col overflow-hidden rounded-[32px] bg-background shadow-2xl shadow-black/25 duration-300 animate-in fade-in slide-in-from-bottom-4 sm:max-h-[86vh] sm:rounded-[40px] sm:zoom-in-95">
           <div
             ref={scrollRef}
-            className="no-scrollbar flex-1 overflow-y-auto overscroll-contain"
+            className={cn(
+              "no-scrollbar flex-1 overscroll-contain",
+              photoExpanded ? "overflow-hidden" : "overflow-y-auto",
+            )}
           >
-            <div className="p-4 pb-28 sm:p-8 sm:pb-8">
+            <div
+              className={cn(
+                photoExpanded ? "h-full p-0" : "p-4 pb-28 sm:p-8 sm:pb-8",
+              )}
+            >
               <BirdDetailContent
                 bird={bird}
                 related={related}
                 onSelectBird={onSelectBird}
+                onExpandLayoutChange={onExpandLayoutChange}
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile — pill with label */}
-      <button
-        type="button"
-        aria-label="Close"
-        onClick={onClose}
-        className={`fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 sm:hidden ${mobileCloseClass}`}
-      >
-        Close
-        <X className="size-3.5" />
-      </button>
+      {!photoExpanded ? (
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+          className={`fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 sm:hidden ${mobileCloseClass}`}
+        >
+          Close
+          <X className="size-3.5" />
+        </button>
+      ) : null}
     </div>
   );
 }

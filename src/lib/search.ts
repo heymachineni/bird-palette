@@ -1,5 +1,15 @@
 import type { BirdSummary } from "@/types/bird";
-import { normalizeColorQuery } from "@/lib/color/naming";
+import { COLOR_FAMILIES, nameColor, normalizeColorQuery } from "@/lib/color/naming";
+
+const FAMILY_SET = new Set<string>(COLOR_FAMILIES);
+
+function isColorFamilyToken(token: string): boolean {
+  return FAMILY_SET.has(normalizeColorQuery(token));
+}
+
+function queryTokens(query: string): string[] {
+  return query.trim().toLowerCase().split(/[\s,+]+/).filter(Boolean);
+}
 
 /** Normalize hex for comparison (# optional, 3- or 6-digit). */
 export function normalizeHex(hex: string): string {
@@ -38,6 +48,75 @@ export function filterBirdsByHex(
 ): BirdSummary[] {
   if (!hex) return birds;
   return birds.filter((bird) => birdHasExactHex(bird, hex));
+}
+
+/** Total plumage share for a color family (e.g. "red", "orange"). */
+export function birdColorFamilyShare(bird: BirdSummary, family: string): number {
+  const target = normalizeColorQuery(family);
+  let share = 0;
+  for (const c of bird.colors ?? []) {
+    if (normalizeColorQuery(c.family) === target) share += c.share;
+  }
+  if (share > 0) return share;
+  for (const p of bird.palette) {
+    if (normalizeColorQuery(nameColor(p.hex)) === target) share += p.share;
+  }
+  return share;
+}
+
+/** Total plumage share for an exact hex swatch. */
+export function birdHexShare(bird: BirdSummary, hex: string): number {
+  const target = normalizeHex(hex);
+  let share = 0;
+  for (const c of bird.colors ?? []) {
+    if (normalizeHex(c.hex) === target) share += c.share;
+  }
+  for (const p of bird.palette) {
+    if (normalizeHex(p.hex) === target) share += p.share;
+  }
+  return share;
+}
+
+/**
+ * When filtering by color, rank birds by how much of that color they wear —
+ * highest share first, least last. Name-only queries keep their input order.
+ */
+export function sortBirdsByColorRelevance(
+  birds: BirdSummary[],
+  query: string,
+  pickedColor: string | null,
+): BirdSummary[] {
+  const scoreOf = (bird: BirdSummary): number | null => {
+    if (pickedColor) return birdHexShare(bird, pickedColor);
+
+    const tokens = queryTokens(query);
+    const hexTokens = tokens.filter(isHexQuery);
+    if (hexTokens.length > 0) {
+      return hexTokens.reduce((sum, t) => sum + birdHexShare(bird, t), 0);
+    }
+
+    const colorTokens = tokens.filter(isColorFamilyToken).map(normalizeColorQuery);
+    if (colorTokens.length > 0) {
+      return colorTokens.reduce((sum, t) => sum + birdColorFamilyShare(bird, t), 0);
+    }
+
+    return null;
+  };
+
+  const scored = birds.map((bird, index) => ({
+    bird,
+    index,
+    score: scoreOf(bird),
+  }));
+
+  if (scored.every((entry) => entry.score === null)) return birds;
+
+  return scored
+    .sort((a, b) => {
+      const diff = (b.score ?? 0) - (a.score ?? 0);
+      return diff !== 0 ? diff : a.index - b.index;
+    })
+    .map((entry) => entry.bird);
 }
 
 function matchesToken(bird: BirdSummary, token: string): boolean {
