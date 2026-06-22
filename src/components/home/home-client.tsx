@@ -15,6 +15,10 @@ import { birdSlugFromPath } from "@/lib/bird-url";
 import { HomeSearch } from "./home-search";
 import { HomeEmptyState } from "./home-empty-state";
 import { HomeSearchFailureState } from "./home-search-failure-state";
+import {
+  HomeLoadingMessage,
+  HomeLoadingSkeletonGrid,
+} from "./home-loading-state";
 import { BirdThumbnail } from "./bird-thumbnail";
 import { BirdDetailModal } from "@/components/bird/bird-detail-modal";
 
@@ -351,21 +355,32 @@ export function HomeClient({
       <section>
         {showGrid ? (
           <>
-            {(searchIndexLoading || (loadingPage && visible.length === 0)) && (
-              <p className="mb-6 text-center text-sm text-muted-foreground">
-                Loading birds…
-              </p>
-            )}
-            <div className="grid grid-cols-1 gap-5 min-[420px]:grid-cols-2 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
-              {visible.map((bird, i) => (
-                <BirdThumbnail
-                  key={bird.slug}
-                  bird={bird}
-                  priority={i < 4}
-                  onOpen={setActiveBird}
+            {searchIndexLoading ? (
+              <>
+                <HomeLoadingMessage
+                  mode="search-index"
+                  query={query}
+                  pickedColor={pickedColor}
                 />
-              ))}
-            </div>
+                <HomeLoadingSkeletonGrid />
+              </>
+            ) : (
+              <>
+                {loadingPage && visible.length === 0 && (
+                  <HomeLoadingMessage mode="browse" />
+                )}
+                <div className="grid grid-cols-1 gap-5 min-[420px]:grid-cols-2 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
+                  {visible.map((bird, i) => (
+                    <BirdThumbnail
+                      key={bird.slug}
+                      bird={bird}
+                      priority={i < 4}
+                      onOpen={setActiveBird}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
             {hasMore && <div ref={sentinelRef} className="h-px w-full" />}
           </>
         ) : showSearchFailure ? (

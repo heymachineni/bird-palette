@@ -1,9 +1,8 @@
 import { isPhotoSampleHost } from "./photo-sample-hosts";
 
-/** Same-origin proxy so canvas can read pixels from remote bird photos. */
-export function sampleImageUrl(src: string): string {
-  if (typeof window === "undefined") return src;
-  if (src.startsWith("/") || src.startsWith(window.location.origin)) return src;
+/** Same-origin proxy for remote bird photos (works on server and client). */
+export function photoProxyUrl(src: string): string {
+  if (src.startsWith("/")) return src;
 
   let parsed: URL;
   try {
@@ -17,6 +16,14 @@ export function sampleImageUrl(src: string): string {
   }
 
   return `/api/photo-sample?url=${encodeURIComponent(src)}`;
+}
+
+/** Same-origin proxy so canvas can read pixels from remote bird photos. */
+export function sampleImageUrl(src: string): string {
+  if (typeof window !== "undefined") {
+    if (src.startsWith(window.location.origin)) return src;
+  }
+  return photoProxyUrl(src);
 }
 
 /** True when the URL can be drawn to canvas without a proxy. */

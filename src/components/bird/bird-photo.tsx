@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { isBirdNetImageUrl } from "@/lib/photos/birdnet-placeholder";
 import { fetchInaturalistPhoto } from "@/lib/photos/inaturalist";
 import { hasBirdImage } from "@/lib/photos/placeholder";
+import { photoProxyUrl } from "@/lib/photos/sample-url";
 
 type BirdPhotoVariant = "hero" | "card" | "mini" | "plate";
 
@@ -38,6 +39,26 @@ const VARIANTS: Record<
   },
 };
 
+function photoDisplayCandidates(remoteSrc: string): string[] {
+  const proxied = photoProxyUrl(remoteSrc);
+  if (proxied !== remoteSrc) return [proxied, remoteSrc];
+  return [remoteSrc];
+}
+
+function buildPhotoCandidates(
+  primary: string,
+  inatFallback: string | null,
+): string[] {
+  const urls: string[] = [];
+  for (const remote of [primary, inatFallback]) {
+    if (!remote) continue;
+    for (const candidate of photoDisplayCandidates(remote)) {
+      if (!urls.includes(candidate)) urls.push(candidate);
+    }
+  }
+  return urls;
+}
+
 export function BirdPhoto({
   src,
   alt,
@@ -56,34 +77,42 @@ export function BirdPhoto({
   className?: string;
 }) {
   const v = VARIANTS[variant];
-  const [activeSrc, setActiveSrc] = useState(src);
-  const [hidden, setHidden] = useState(!hasBirdImage(src));
+  const [inatFallback, setInatFallback] = useState<string | null>(null);
+  const [inatPending, setInatPending] = useState(false);
+  const [tryIndex, setTryIndex] = useState(0);
   const [loaded, setLoaded] = useState(false);
-  const inatFallback = useRef<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [awaitingFallback, setAwaitingFallback] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  useEffect(() => {
-    setActiveSrc(src);
-    setHidden(!hasBirdImage(src));
-    setLoaded(false);
-    inatFallback.current = null;
-  }, [src]);
+  const candidates = useMemo(
+    () => buildPhotoCandidates(src, inatFallback),
+    [src, inatFallback],
+  );
+  const displaySrc = candidates[tryIndex] ?? src;
+  const reserveImageArea =
+    hasBirdImage(src) || inatPending || !!inatFallback || awaitingFallback;
 
   useEffect(() => {
-    const el = imgRef.current;
-    if (el?.complete && el.naturalWidth > 0) setLoaded(true);
-  }, [activeSrc]);
+    setInatFallback(null);
+    setInatPending(false);
+    setTryIndex(0);
+    setLoaded(false);
+    setFailed(false);
+    setAwaitingFallback(false);
+  }, [src]);
 
   useEffect(() => {
     if (!scientificName || !isBirdNetImageUrl(src)) return;
 
     let cancelled = false;
+    setInatPending(true);
     void fetchInaturalistPhoto(scientificName, commonName)
       .then((inat) => {
-        if (!cancelled && inat) inatFallback.current = inat;
+        if (!cancelled && inat) setInatFallback(inat);
       })
-      .catch(() => {
-        /* network / CORS — keep BirdNET src */
+      .finally(() => {
+        if (!cancelled) setInatPending(false);
       });
 
     return () => {
@@ -91,42 +120,77 @@ export function BirdPhoto({
     };
   }, [src, scientificName, commonName]);
 
-  const onImageError = () => {
-    const inat = inatFallback.current;
-    if (inat && activeSrc !== inat) {
-      setActiveSrc(inat);
-      setHidden(false);
+  useEffect(() => {
+    const el = imgRef.current;
+    if (el?.complete && el.naturalWidth > 0) setLoaded(true);
+  }, [displaySrc]);
+
+  useEffect(() => {
+    if (!awaitingFallback) return;
+
+    if (inatFallback) {
+      setAwaitingFallback(false);
+      setFailed(false);
       setLoaded(false);
+      setTryIndex(buildPhotoCandidates(src, null).length);
       return;
     }
-    setHidden(true);
-  };
 
-  if (hidden || !hasBirdImage(activeSrc)) return null;
+    if (!inatPending) {
+      setAwaitingFallback(false);
+      setFailed(true);
+    }
+  }, [awaitingFallback, inatFallback, inatPending, src]);
+
+  const onImageError = useCallback(() => {
+    setLoaded(false);
+    setTryIndex((index) => {
+      const next = index + 1;
+      if (next < candidates.length) return next;
+
+      if (inatPending) {
+        setAwaitingFallback(true);
+      } else {
+        setFailed(true);
+      }
+      return index;
+    });
+  }, [candidates.length, inatPending]);
+
+  if (!reserveImageArea) return null;
 
   return (
     <div className={cn(v.wrapper, className)}>
-      {!loaded && (
+      {!loaded && !failed && (
         <div aria-hidden className="absolute inset-0 bg-muted shimmer" />
       )}
-      {/* Native img — Next/Image can keep stale pixels when src changes on the same node. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        key={activeSrc}
-        ref={imgRef}
-        src={activeSrc}
-        alt={alt}
-        decoding="async"
-        fetchPriority={priority ? "high" : "auto"}
-        referrerPolicy="no-referrer"
-        className={cn(
-          v.img,
-          "absolute inset-0 h-full w-full transition-opacity duration-300",
-          loaded ? "opacity-100" : "opacity-0",
-        )}
-        onLoad={() => setLoaded(true)}
-        onError={onImageError}
-      />
+      {failed && (
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-muted/80"
+        />
+      )}
+      {!failed && (
+        /* Native img — Next/Image can keep stale pixels when src changes on the same node. */
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          key={displaySrc}
+          ref={imgRef}
+          src={displaySrc}
+          alt={alt}
+          decoding="async"
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
+          referrerPolicy="no-referrer"
+          className={cn(
+            v.img,
+            "absolute inset-0 h-full w-full transition-opacity duration-300",
+            loaded ? "opacity-100" : "opacity-0",
+          )}
+          onLoad={() => setLoaded(true)}
+          onError={onImageError}
+        />
+      )}
     </div>
   );
 }
