@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { ToastProvider } from "@/components/ui/toast";
 import { SiteHeader } from "@/components/layout/site-header";
 import "./globals.css";
@@ -69,6 +71,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
       <body className="min-h-screen antialiased">
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
         <ToastProvider>
           <SiteHeader />
           <main>{children}</main>
