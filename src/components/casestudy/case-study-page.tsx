@@ -200,7 +200,6 @@ const STATS = [
   {
     value: "3",
     label: "ways to search or copy color",
-    detail: "Palette bar · search · photo sample",
   },
 ] as const;
 
@@ -255,11 +254,6 @@ export function CaseStudyPage() {
               <dd className="mt-1.5 text-xs leading-snug text-muted-foreground">
                 {stat.label}
               </dd>
-              {"detail" in stat && stat.detail ? (
-                <dd className="mt-1 font-mono text-[10px] tracking-wide text-muted-foreground/70">
-                  {stat.detail}
-                </dd>
-              ) : null}
             </div>
           ))}
         </dl>
