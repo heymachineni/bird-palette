@@ -28,9 +28,6 @@ jobs:
       - name: Install Cloud Functions dependencies
         run: npm install --prefix functions --no-audit --no-fund
 
-      - name: Sync shared code into functions bundle
-        run: bash scripts/prepare-functions.sh
-
       - name: Build static site
         run: npm run build:hosting
         env:
@@ -51,7 +48,8 @@ jobs:
           echo "Static files:" && find out -maxdepth 2 -type f | head -20
           echo "Total files:" && find out -type f | wc -l
 
-      - name: Deploy Firebase Hosting and photo proxy
+      # Functions must deploy before hosting: firebase.json rewrites /api/bird-sound → birdSound.
+      - name: Deploy Firebase (functions, then hosting)
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NATURE_COLORPALETTE }}
           XENO_CANTO_API_KEY: ${{ secrets.XENO_CANTO_API_KEY }}
@@ -61,5 +59,5 @@ jobs:
           node -e "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'))" "$SA_FILE"
           export GOOGLE_APPLICATION_CREDENTIALS="$SA_FILE"
           bash scripts/prepare-functions.sh
-          npx firebase deploy --only hosting,functions:photoSample --project birdpalette --non-interactive
-          npx firebase deploy --only functions:birdSound --project birdpalette --non-interactive
+          npx firebase deploy --only functions:photoSample,functions:birdSound --project birdpalette --non-interactive
+          npx firebase deploy --only hosting --project birdpalette --non-interactive

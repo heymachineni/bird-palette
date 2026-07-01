@@ -19,17 +19,17 @@ jobs:
           node-version: "22"
           cache: npm
 
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
       - name: Install Cloud Functions dependencies
         run: npm install --prefix functions --no-audit --no-fund
-
-      - name: Sync shared code into functions bundle
-        run: bash scripts/prepare-functions.sh
 
       # Requires GCP IAM on the service account:
       # - roles/serviceusage.serviceUsageConsumer
       # - roles/cloudfunctions.developer
       # - roles/iam.serviceAccountUser
-      - name: Deploy photoSample function
+      - name: Deploy Cloud Functions
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NATURE_COLORPALETTE }}
           XENO_CANTO_API_KEY: ${{ secrets.XENO_CANTO_API_KEY }}

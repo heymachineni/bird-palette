@@ -1,9 +1,10 @@
 const { onRequest } = require("firebase-functions/v2/https");
-const { defineSecret } = require("firebase-functions/params");
+const { defineString } = require("firebase-functions/params");
 const { resolveBirdSound } = require("./bird-sound-resolve.js");
 
 const soundCache = new Map();
-const xenoCantoApiKey = defineSecret("XENO_CANTO_API_KEY");
+/** Set via functions/.env at deploy (CI: GitHub secret; local: root .env → prepare-functions.sh). */
+const xenoCantoApiKey = defineString("XENO_CANTO_API_KEY", { default: "" });
 
 const ALLOWED_HOSTS = new Set([
   "birdnet.cornell.edu",
@@ -85,7 +86,6 @@ exports.birdSound = onRequest(
     invoker: "public",
     maxInstances: 10,
     memory: "256MiB",
-    secrets: [xenoCantoApiKey],
   },
   async (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");
