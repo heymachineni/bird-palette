@@ -29,6 +29,7 @@ jobs:
       # - roles/serviceusage.serviceUsageConsumer
       # - roles/cloudfunctions.developer
       # - roles/iam.serviceAccountUser
+      # - roles/run.developer (needed to set birdSound env vars on Cloud Run)
       - name: Deploy Cloud Functions
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NATURE_COLORPALETTE }}
