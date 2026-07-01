@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Deploy photoSample Cloud Function (run once, or after function code changes).
+# Deploy Cloud Functions (photoSample + birdSound).
+# birdSound needs: firebase functions:secrets:set XENO_CANTO_API_KEY
 # Requires firebase login or FIREBASE_SERVICE_ACCOUNT_PATH / birdpalette-firebase-adminsdk.json
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -19,6 +20,6 @@ else
 fi
 
 unset VSCODE_CWD
-npx firebase deploy --only functions:photoSample --project birdpalette
+npx firebase deploy --only functions:photoSample,functions:birdSound --project birdpalette
 
-echo "✓ photoSample deployed"
+echo "✓ photoSample + birdSound deployed"

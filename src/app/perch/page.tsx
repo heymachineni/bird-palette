@@ -22,6 +22,10 @@ const SOURCES = [
     name: "Wikipedia",
     href: "https://www.wikipedia.org/",
   },
+  {
+    name: "Xeno-canto",
+    href: "https://xeno-canto.org/",
+  },
 ] as const;
 
 export default function PerchPage() {
@@ -63,6 +67,11 @@ export default function PerchPage() {
             still tuning that. If you want a specific shade from the bird itself,
             open any bird and hover the photo. You can copy the color straight
             from the image.
+          </p>
+          <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
+            You can also listen to raw field recordings when they exist. Tap the
+            wave icon beside the bird&apos;s name. Not every species has made it
+            onto mic yet.
           </p>
           <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
             If you have questions, suggestions, or just want to talk, feel free

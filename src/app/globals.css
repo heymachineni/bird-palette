@@ -158,3 +158,32 @@
     transform: rotate(360deg);
   }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .bird-sound-wave {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .bird-sound-waves--playing .bird-sound-wave {
+    animation: bird-sound-wave 1.05s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+
+  .bird-sound-waves--playing .bird-sound-wave--2 {
+    animation-delay: 0.14s;
+  }
+
+  .bird-sound-waves--playing .bird-sound-wave--3 {
+    animation-delay: 0.28s;
+  }
+}
+
+@keyframes bird-sound-wave {
+  0%,
+  100% {
+    transform: scaleY(0.42);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}

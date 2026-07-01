@@ -28,6 +28,13 @@
           "functionId": "photoSample",
           "region": "us-central1"
         }
+      },
+      {
+        "source": "/api/bird-sound",
+        "function": {
+          "functionId": "birdSound",
+          "region": "us-central1"
+        }
       }
     ],
     "headers": [

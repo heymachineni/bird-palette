@@ -1,4 +1,9 @@
 const { onRequest } = require("firebase-functions/v2/https");
+const { defineSecret } = require("firebase-functions/params");
+const { resolveBirdSound } = require("../shared/bird-sound-resolve.js");
+
+const soundCache = new Map();
+const xenoCantoApiKey = defineSecret("XENO_CANTO_API_KEY");
 
 const ALLOWED_HOSTS = new Set([
   "birdnet.cornell.edu",
@@ -68,6 +73,62 @@ exports.photoSample = onRequest(
       res.status(200).send(body);
     } catch {
       res.status(502).send("");
+    }
+  },
+);
+
+/** Resolves one Xeno-canto recording (song preferred, else call) per species. */
+exports.birdSound = onRequest(
+  {
+    region: "us-central1",
+    cors: true,
+    invoker: "public",
+    maxInstances: 10,
+    memory: "256MiB",
+    secrets: [xenoCantoApiKey],
+  },
+  async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    if (req.method !== "GET") {
+      res.status(405).send("Method not allowed");
+      return;
+    }
+
+    const raw = req.query.scientificName;
+    const scientificName =
+      typeof raw === "string" ? raw.trim() : Array.isArray(raw) ? raw[0]?.trim() : "";
+
+    if (!scientificName) {
+      res.status(400).json({ error: "missing scientificName" });
+      return;
+    }
+
+    const apiKey = xenoCantoApiKey.value();
+    if (!apiKey) {
+      res.status(503).json({ error: "sound service unavailable" });
+      return;
+    }
+
+    const cacheKey = scientificName.toLowerCase();
+    if (soundCache.has(cacheKey)) {
+      res.set("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800");
+      res.status(200).json(soundCache.get(cacheKey));
+      return;
+    }
+
+    try {
+      const result = await resolveBirdSound(scientificName, apiKey);
+      soundCache.set(cacheKey, result);
+      res.set("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800");
+      res.status(200).json(result);
+    } catch {
+      res.status(502).json({ error: "upstream failed" });
     }
   },
 );

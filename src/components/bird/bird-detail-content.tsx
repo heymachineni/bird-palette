@@ -6,6 +6,7 @@ import { BirdAbout } from "@/components/bird/bird-about";
 import { PaletteStudy } from "@/components/bird/palette-study";
 import { BirdThumbnail } from "@/components/home/bird-thumbnail";
 import { PhotoPalettePicker } from "@/components/bird/photo-palette-picker";
+import { BirdSoundButton } from "@/components/bird/bird-sound-button";
 import { cn } from "@/lib/utils";
 
 const LAYOUT_MS = 420;
@@ -131,9 +132,12 @@ export function BirdDetailContent({
 
           {!showAside ? null : (
             <div className="min-w-0 flex-1">
-              <h1 className="font-serif text-xl leading-[1.1] tracking-tight text-foreground sm:text-2xl lg:text-3xl lg:leading-[1.05]">
-                {bird.name}
-              </h1>
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="font-serif text-xl leading-[1.1] tracking-tight text-foreground sm:text-2xl lg:text-3xl lg:leading-[1.05]">
+                  {bird.name}
+                </h1>
+                <BirdSoundButton scientificName={bird.scientificName} />
+              </div>
               <p className="mt-1 font-serif text-xs italic text-muted-foreground sm:text-sm">
                 {bird.scientificName}
               </p>
