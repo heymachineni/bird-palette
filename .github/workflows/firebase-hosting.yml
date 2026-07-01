@@ -54,9 +54,11 @@ jobs:
       - name: Deploy Firebase Hosting and photo proxy
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NATURE_COLORPALETTE }}
+          XENO_CANTO_API_KEY: ${{ secrets.XENO_CANTO_API_KEY }}
         run: |
           SA_FILE="${RUNNER_TEMP}/firebase-sa.json"
           node -e "require('fs').writeFileSync(process.argv[1], process.env.FIREBASE_SERVICE_ACCOUNT)" "$SA_FILE"
           node -e "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'))" "$SA_FILE"
           export GOOGLE_APPLICATION_CREDENTIALS="$SA_FILE"
+          bash scripts/prepare-functions.sh
           npx firebase deploy --only hosting,functions:photoSample,functions:birdSound --project birdpalette --non-interactive

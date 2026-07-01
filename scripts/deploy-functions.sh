@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploy Cloud Functions (photoSample + birdSound).
-# birdSound needs: firebase functions:secrets:set XENO_CANTO_API_KEY
+# birdSound needs XENO_CANTO_API_KEY in root .env or functions/.env (see prepare-functions.sh).
 # Requires firebase login or FIREBASE_SERVICE_ACCOUNT_PATH / birdpalette-firebase-adminsdk.json
 set -euo pipefail
 cd "$(dirname "$0")/.."
