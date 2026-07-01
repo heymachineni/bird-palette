@@ -28,6 +28,9 @@ jobs:
       - name: Install Cloud Functions dependencies
         run: npm install --prefix functions --no-audit --no-fund
 
+      - name: Sync shared code into functions bundle
+        run: bash scripts/prepare-functions.sh
+
       - name: Build static site
         run: npm run build:hosting
         env:

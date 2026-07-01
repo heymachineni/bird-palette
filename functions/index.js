@@ -1,6 +1,6 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
-const { resolveBirdSound } = require("../shared/bird-sound-resolve.js");
+const { resolveBirdSound } = require("./bird-sound-resolve.js");
 
 const soundCache = new Map();
 const xenoCantoApiKey = defineSecret("XENO_CANTO_API_KEY");

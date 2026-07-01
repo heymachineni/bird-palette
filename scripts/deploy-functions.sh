@@ -6,6 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 npm install --prefix functions --no-audit --no-fund
+bash scripts/prepare-functions.sh
 
 SA="${FIREBASE_SERVICE_ACCOUNT_PATH:-}"
 if [[ -z "$SA" && -f "birdpalette-firebase-adminsdk.json" ]]; then
