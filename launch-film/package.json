@@ -1,0 +1,27 @@
+{
+  "name": "bird-palette-launch-film",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cinematic launch film for Bird Palette, built with Remotion.",
+  "scripts": {
+    "dev": "remotion studio",
+    "studio": "remotion studio",
+    "render": "remotion render BirdPaletteLaunch out/bird-palette-launch.mp4",
+    "upgrade": "remotion upgrade",
+    "skills": "remotion skills add"
+  },
+  "dependencies": {
+    "@remotion/google-fonts": "4.0.481",
+    "@remotion/media": "4.0.481",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.481"
+  },
+  "devDependencies": {
+    "@remotion/cli": "4.0.481",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "puppeteer-core": "^23.11.1",
+    "typescript": "5.8.2"
+  }
+}

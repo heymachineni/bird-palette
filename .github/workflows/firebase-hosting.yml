@@ -49,9 +49,8 @@ jobs:
           echo "Total files:" && find out -type f | wc -l
 
       # birdSound is deployed separately (local `npm run deploy:functions` or the
-      # "Deploy Cloud Functions" workflow). CI only ships hosting + photoSample —
-      # the deploy service account cannot update birdSound's env config reliably.
-      - name: Deploy Firebase Hosting and photoSample
+      # "Deploy Cloud Functions" workflow). CI ships hosting + photoSample + rules.
+      - name: Deploy Firebase Hosting, photoSample, and security rules
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NATURE_COLORPALETTE }}
         run: |
@@ -60,4 +59,6 @@ jobs:
           node -e "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'))" "$SA_FILE"
           export GOOGLE_APPLICATION_CREDENTIALS="$SA_FILE"
           unset VSCODE_CWD
-          npx firebase deploy --only hosting,functions:photoSample --project birdpalette --non-interactive
+          chmod +x scripts/firebase-deploy-with-retry.sh
+          bash scripts/firebase-deploy-with-retry.sh \
+            --only hosting,functions:photoSample,firestore:rules,storage

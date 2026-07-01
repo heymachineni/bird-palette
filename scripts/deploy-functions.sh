@@ -21,6 +21,8 @@ else
 fi
 
 unset VSCODE_CWD
-npx firebase deploy --only functions:photoSample,functions:birdSound --project birdpalette
+chmod +x scripts/firebase-deploy-with-retry.sh
+bash scripts/firebase-deploy-with-retry.sh \
+  --only functions:photoSample,functions:birdSound
 
 echo "✓ photoSample + birdSound deployed"

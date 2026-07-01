@@ -1,5 +1,10 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const { resolveBirdSound } = require("./bird-sound-resolve.js");
+const {
+  applyBrowserGate,
+  fetchImageWithAllowlist,
+  isRateLimited,
+} = require("./http-utils.js");
 
 const soundCache = new Map();
 
@@ -12,22 +17,22 @@ const ALLOWED_HOSTS = new Set([
   "commons.wikimedia.org",
 ]);
 
+function guardRequest(req, res) {
+  if (isRateLimited(req, res)) return false;
+  return applyBrowserGate(req, res) !== null;
+}
+
 /** Proxies remote bird photos so the client canvas can sample pixels in production. */
 exports.photoSample = onRequest(
   {
     region: "us-central1",
-    cors: true,
+    cors: false,
     invoker: "public",
     maxInstances: 10,
     memory: "256MiB",
   },
   async (req, res) => {
-    res.set("Access-Control-Allow-Origin", "*");
-
-    if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
-    }
+    if (!guardRequest(req, res)) return;
 
     if (req.method !== "GET") {
       res.status(405).send("Method not allowed");
@@ -55,20 +60,22 @@ exports.photoSample = onRequest(
     }
 
     try {
-      const upstream = await fetch(parsed.toString(), {
-        headers: { Accept: "image/*" },
-      });
-      if (!upstream.ok) {
+      const upstream = await fetchImageWithAllowlist(
+        parsed.toString(),
+        (host) => ALLOWED_HOSTS.has(host),
+      );
+      if (!upstream) {
+        res.status(502).send("");
+        return;
+      }
+      if (!upstream.body) {
         res.status(upstream.status).send("");
         return;
       }
 
-      const body = Buffer.from(await upstream.arrayBuffer());
-      const contentType = upstream.headers.get("content-type") ?? "image/jpeg";
-
-      res.set("Content-Type", contentType);
+      res.set("Content-Type", upstream.contentType);
       res.set("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800");
-      res.status(200).send(body);
+      res.status(200).send(upstream.body);
     } catch {
       res.status(502).send("");
     }
@@ -79,18 +86,13 @@ exports.photoSample = onRequest(
 exports.birdSound = onRequest(
   {
     region: "us-central1",
-    cors: true,
+    cors: false,
     invoker: "public",
     maxInstances: 10,
     memory: "256MiB",
   },
   async (req, res) => {
-    res.set("Access-Control-Allow-Origin", "*");
-
-    if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
-    }
+    if (!guardRequest(req, res)) return;
 
     if (req.method !== "GET") {
       res.status(405).send("Method not allowed");

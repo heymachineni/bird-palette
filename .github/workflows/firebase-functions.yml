@@ -41,4 +41,6 @@ jobs:
           export GOOGLE_APPLICATION_CREDENTIALS="$SA_FILE"
           unset VSCODE_CWD
           bash scripts/prepare-functions.sh
-          npx firebase deploy --only functions:photoSample,functions:birdSound --project birdpalette --non-interactive
+          chmod +x scripts/firebase-deploy-with-retry.sh
+          bash scripts/firebase-deploy-with-retry.sh \
+            --only functions:photoSample,functions:birdSound

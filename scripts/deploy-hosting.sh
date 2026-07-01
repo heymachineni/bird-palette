@@ -22,6 +22,8 @@ fi
 unset VSCODE_CWD
 npm install --prefix functions --no-audit --no-fund
 bash scripts/prepare-functions.sh
-npx firebase deploy --only hosting,functions:photoSample,functions:birdSound --project birdpalette
+chmod +x scripts/firebase-deploy-with-retry.sh
+bash scripts/firebase-deploy-with-retry.sh \
+  --only hosting,functions:photoSample,functions:birdSound,firestore:rules,storage
 
 echo "✓ https://birdpalette.web.app"
