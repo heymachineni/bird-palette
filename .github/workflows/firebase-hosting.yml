@@ -61,4 +61,4 @@ jobs:
           unset VSCODE_CWD
           chmod +x scripts/firebase-deploy-with-retry.sh
           bash scripts/firebase-deploy-with-retry.sh \
-            --only hosting,functions:photoSample,firestore:rules,storage
+            --only hosting,functions:photoSample,firestore:rules

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { BirdSummary } from "@/types/bird";
-import { pillButtonClass } from "@/components/ui/pill-button";
 import { cn } from "@/lib/utils";
 import {
   BirdDetailContent,
@@ -123,10 +122,6 @@ export function BirdDetailModal({
 
   if (!open || !bird) return null;
 
-  const mobileCloseClass = pillButtonClass(
-    "bg-background/95 shadow-lg backdrop-blur hover:bg-muted",
-  );
-
   const photoExpanded = expandLayout.expanded;
 
   return (
@@ -143,12 +138,17 @@ export function BirdDetailModal({
         className="absolute inset-0 cursor-default bg-foreground/40 backdrop-blur-[3px] animate-in fade-in"
       />
 
-      <div className="relative z-10 flex w-full max-w-[1200px] justify-center">
+      <div
+        className={cn(
+          "relative z-10 flex w-full max-w-[1200px] flex-col gap-3 sm:block",
+          !photoExpanded && "max-h-[calc(100dvh-1.5rem)] sm:max-h-none",
+        )}
+      >
         {!photoExpanded ? (
           <button
             type="button"
             aria-label="Close"
-            onClick={onClose}
+            onClick={dismissOrCollapse}
             className={cn(
               "absolute -top-12 right-0 hidden size-10 place-items-center rounded-full",
               "border border-border bg-background/95 text-foreground shadow-lg backdrop-blur",
@@ -161,10 +161,10 @@ export function BirdDetailModal({
 
         <div
           className={cn(
-            "flex w-full flex-col overflow-hidden bg-background shadow-2xl shadow-black/25 duration-300 animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95",
+            "flex w-full min-h-0 flex-col overflow-hidden bg-background shadow-2xl shadow-black/25 duration-300 animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95",
             photoExpanded
               ? "max-h-[86dvh] w-full rounded-[28px] sm:rounded-[32px]"
-              : "max-h-[calc(100dvh-1.5rem)] rounded-[32px] sm:max-h-[86vh] sm:rounded-[40px]",
+              : "min-h-0 flex-1 rounded-[32px] sm:max-h-[86vh] sm:flex-none sm:rounded-[40px]",
           )}
         >
           <div
@@ -174,11 +174,7 @@ export function BirdDetailModal({
               photoExpanded ? "overflow-hidden" : "overflow-y-auto",
             )}
           >
-            <div
-              className={cn(
-                photoExpanded ? "h-full p-0" : "p-4 pb-28 sm:p-8 sm:pb-8",
-              )}
-            >
+            <div className={cn(photoExpanded ? "h-full p-0" : "p-4 sm:p-8")}>
               <BirdDetailContent
                 bird={bird}
                 related={related}
@@ -188,19 +184,22 @@ export function BirdDetailModal({
             </div>
           </div>
         </div>
-      </div>
 
-      {!photoExpanded ? (
-        <button
-          type="button"
-          aria-label="Close"
-          onClick={onClose}
-          className={`fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 sm:hidden ${mobileCloseClass}`}
-        >
-          Close
-          <X className="size-3.5" />
-        </button>
-      ) : null}
+        {!photoExpanded ? (
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={dismissOrCollapse}
+            className={cn(
+              "flex w-full shrink-0 items-center justify-center rounded-full",
+              "border border-border bg-background/95 py-2.5 text-sm font-medium text-foreground",
+              "shadow-lg backdrop-blur transition-colors hover:bg-muted active:scale-[0.99] sm:hidden",
+            )}
+          >
+            Close
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

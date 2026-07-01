@@ -165,7 +165,7 @@ export function BirdDetailContent({
                   Birds with a similar combination
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-5">
+              <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 sm:grid-cols-4 sm:gap-5">
                 {related.map((b) => (
                   <BirdThumbnail key={b.slug} bird={b} onOpen={onSelectBird} />
                 ))}
