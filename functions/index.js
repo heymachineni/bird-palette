@@ -3,7 +3,7 @@ const { defineString } = require("firebase-functions/params");
 const { resolveBirdSound } = require("./bird-sound-resolve.js");
 
 const soundCache = new Map();
-const xenoCantoApiKey = defineString("XENO_CANTO_API_KEY");
+const xenoCantoApiKey = defineString("XENO_CANTO_API_KEY", { default: "" });
 
 const ALLOWED_HOSTS = new Set([
   "birdnet.cornell.edu",

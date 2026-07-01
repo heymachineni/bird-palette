@@ -61,4 +61,5 @@ jobs:
           node -e "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'))" "$SA_FILE"
           export GOOGLE_APPLICATION_CREDENTIALS="$SA_FILE"
           bash scripts/prepare-functions.sh
-          npx firebase deploy --only hosting,functions:photoSample,functions:birdSound --project birdpalette --non-interactive
+          npx firebase deploy --only hosting,functions:photoSample --project birdpalette --non-interactive
+          npx firebase deploy --only functions:birdSound --project birdpalette --non-interactive

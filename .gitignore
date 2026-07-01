@@ -48,6 +48,4 @@ firebase-service-account.json
 firebase-debug.log
 firebase-debug.*.log
 
-# generated from shared/ before functions deploy
-/functions/bird-sound-resolve.js
 /functions/.env
