@@ -1,93 +1,138 @@
 # Bird Palette
 
-**Live:** [birdpalette.web.app](https://birdpalette.web.app)
+**Bird plumage colors & palettes from nature — 10,000+ species**
 
-Bird Palette is a visual catalog of real bird plumage colors. Every species is a color combination pulled from nature: browse birds, search by name or exact hex, open a palette, and copy swatches.
+[![Live site](https://img.shields.io/badge/live-birdpalette.web.app-4A7C59?style=for-the-badge)](https://birdpalette.web.app)
+[![License](https://img.shields.io/badge/license-educational%20use-stone?style=for-the-badge)](#license)
 
-Built for exploration and inspiration, not as a generic palette generator.
+**[birdpalette.web.app](https://birdpalette.web.app)** — search bird plumage by name, species, or hex code. Real color combinations from nature for design, art, and ornithology.
 
 ---
 
-## What it is
+## What is Bird Palette?
 
-- **10,000+ birds** with palettes extracted from species photos
-- Each bird has a **proportional color bar**, named swatches, share percentages, and a **copy-ready palette**
-- **Search** by common name, scientific name, color family, or exact hex code
-- **Modal detail view** with Wikipedia summary, palette study, hover-to-sample on the photo, and related birds
-- Photos from **BirdNET** and **iNaturalist**; colors extracted from each photo at build time
+Bird Palette is a visual catalog of **bird plumage color palettes**. Every entry is a **color combination pulled from a real bird photograph** — not a generic palette generator.
 
-Not for commercial use. Educational and exploratory. See [/perch](https://birdpalette.web.app/perch) for the story and data credits.
+- **10,000+ birds** with extracted plumage colors
+- **Proportional color bars**, named swatches, share %, copy-ready hex codes
+- **Search** by common name, scientific name, color family, or exact `#RRGGBB`
+- **Bird detail modal** — Wikipedia summary, palette study, photo color sampling, related palettes, field recordings
+- **Research entries** — e.g. juvenile Gray & Purple Heron palettes from contributor photos
+
+> Keywords people search: *bird palette*, *birdpalette*, *colors of birds*, *bird color combinations*, *bird plumage*, *nature color palette*
+
+---
+
+## Quick links
+
+| | |
+|---|---|
+| **Live app** | https://birdpalette.web.app |
+| **About** | [/perch](https://birdpalette.web.app/perch) |
+| **Case study** | [/casestudy](https://birdpalette.web.app/casestudy) |
+| **Privacy** | [/privacy](https://birdpalette.web.app/privacy) |
+| **Contact** | heymachineni@gmail.com |
 
 ---
 
 ## How it works
 
 ```
-BirdNET / iNaturalist  →  photo resolver  →  image per species
+BirdNET / iNaturalist  →  species photos
         ↓
-  bg removal + pixel scan  →  palette per photo
+  background removal + pixel scan  →  plumage palette per bird
         ↓
-  dataset.json + paginated public/data/
+  dataset.json + public/data/ (static JSON)
         ↓
-  Static Next.js export  →  Firebase Hosting
+  Next.js static export  →  Firebase Hosting + Cloud Functions
 ```
 
-1. **Build time** — `npm run build:birds` fetches photos, removes backgrounds, extracts plumage colors, computes similar palettes, and writes `prisma/seed/dataset.json` plus `public/data/`.
-2. **Deploy time** — `npm run build:hosting` static-exports the site (home grid, `/perch`, `/privacy`, `/terms`, 404) into `out/`. Bird detail opens in a modal — there are no per-slug HTML pages.
-3. **Runtime** — the live site is mostly static. Bird photos, Wikipedia blurbs, and photo pixel sampling use your browser plus a small Cloud Function proxy (`/api/photo-sample`) for canvas reads.
+1. **Build** — `npm run build:birds` extracts colors from photos and writes the dataset.
+2. **Deploy** — `npm run build:hosting` exports static files to `out/`.
+3. **Runtime** — static JSON in the browser; photo sampling via `/api/photo-sample`; bird sounds via `/api/bird-sound`.
 
 ---
 
-## What we built
+## Developer setup
 
-| Area | Detail |
-|------|--------|
-| **Data pipeline** | Photo color extraction, BirdNET + iNaturalist photos, birds without photos excluded |
-| **Search** | Text + color-family tokens; exact hex match via picker or `#RRGGBB` |
-| **Bird detail** | Modal-first UX, draggable palette bar on mobile (haptic on Android; best-effort on iOS), hover/hold photo to sample pixels |
-| **Info pages** | `/perch` (about), `/privacy`, `/terms` |
-| **Hosting** | GitHub Actions → Firebase (`birdpalette` project) |
+```bash
+git clone https://github.com/heymachineni/bird-palette.git
+cd bird-palette
+npm install
+npm run dev
+```
 
----
-
-## Scaling to ~10,000 birds
-
-**Current approach (static JSON, not Firestore in production):**
-
-| | Pros | Cons |
-|---|------|------|
-| **Paginated pages + search index** (what we use now) | Fast grid after first page, works on CDN, no server cost, matches privacy policy | Search index is ~18 MB on first filter; build/deploy time grows with dataset |
-| **Firestore at runtime** | Could paginate and load birds on demand; smaller initial payload | Needs Firebase reads (cost + latency), client SDK, network on every browse; more moving parts |
-
-**Recommendation:** stay on static JSON for the public site. If search feels slow, slim the search index (lighter fields) before moving to Firestore.
-
-Firestore in this repo is **optional** for local/dev seeding only (`npm run seed:firestore`). Production hosting uses `USE_JSON_DATA=true`.
-
----
-
-## Developer commands
+Open http://localhost:3000
 
 | Command | Purpose |
 |---------|---------|
-| `npm run dev` | Local dev (dataset.json) |
-| `USE_JSON_DATA=true npm run dev` | Same data path as production |
-| `npm run build:birds -- --limit 50` | Rebuild bird dataset + search index (smoke test) |
-| `npm run build:birds` | Full photo-extraction rebuild (~10k birds, hours first run) |
-| `npm run build:hosting` | Static export to `out/` |
+| `npm run dev` | Local dev (`USE_JSON_DATA=true`) |
+| `npm run build:birds` | Full dataset rebuild from photos |
+| `npm run add:custom-birds` | Merge curated birds from `public/birds/` |
+| `npm run build:hosting` | Production static export |
 | `npm run deploy:hosting` | Build + deploy to Firebase |
 
-See [docs/DEPLOY.md](docs/DEPLOY.md) for CI and Firebase setup.
+See [docs/DEPLOY.md](docs/DEPLOY.md) for CI and Firebase.
 
 ---
 
 ## Data sources
 
-- [BirdNET](https://birdnet.cornell.edu/) — species photos
-- [iNaturalist](https://www.inaturalist.org/) — species photos (fallback)
-- [Wikipedia](https://www.wikipedia.org/) — bird descriptions (client-side)
+- [BirdNET](https://birdnet.cornell.edu/) — taxonomy & photos
+- [iNaturalist](https://www.inaturalist.org/) — photos (fallback)
+- [Wikipedia](https://www.wikipedia.org/) — species summaries
+- [Xeno-canto](https://xeno-canto.org/) — field recordings
 
 ---
 
-## Contact
+## GitHub topics
 
-Questions or feedback: [heymachineni@gmail.com](mailto:heymachineni@gmail.com) · Built by [Chandu Machineni](https://chandumachineni.com/)
+Add these topics on the repo for discoverability:
+
+`birds` `colors` `palette` `nature` `ornithology` `design` `color-palette` `biodiversity` `plumage` `birding` `nextjs` `firebase` `color-inspiration` `web-app`
+
+Or run:
+
+```bash
+gh repo edit --add-topic birds --add-topic colors --add-topic palette \
+  --add-topic nature --add-topic ornithology --add-topic design \
+  --add-topic color-palette --add-topic biodiversity --add-topic plumage
+```
+
+---
+
+## Wiki
+
+Wiki source pages live in [`wiki/`](wiki/). Enable **GitHub Wiki** on the repo and copy pages from that folder, or browse them in-repo.
+
+| Page | Description |
+|------|-------------|
+| [Home](wiki/Home.md) | Project overview |
+| [About](wiki/About.md) | Mission & features |
+| [SEO](wiki/SEO.md) | How the site is optimized for search |
+| [Data pipeline](wiki/Data-Pipeline.md) | Build & color extraction |
+| [Deploy](wiki/Deploy.md) | Firebase hosting & CI |
+
+---
+
+## SEO
+
+- Metadata & Open Graph on all pages
+- JSON-LD (`WebSite`, `WebApplication`, `SearchAction`)
+- `sitemap.xml` with **10,000+ bird URLs** (`/birds/{slug}`)
+- `robots.txt`, `llms.txt`, web manifest
+- Canonical URLs on every page
+
+Details: [wiki/SEO.md](wiki/SEO.md)
+
+---
+
+## License & use
+
+Educational and exploratory — **not for commercial use**. See [/terms](https://birdpalette.web.app/terms).
+
+---
+
+## Author
+
+Built by **[Chandu Machineni](https://chandumachineni.com/)** · [GitHub](https://github.com/heymachineni) · heymachineni@gmail.com

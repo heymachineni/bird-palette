@@ -3,11 +3,14 @@ import { InfoBackLink } from "@/components/layout/info-back-link";
 import { InfoEmailLink, InfoExternalLink } from "@/components/layout/info-links";
 import { InfoPageFooter } from "@/components/layout/info-page-footer";
 
-export const metadata: Metadata = {
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
   title: "perch",
+  pathname: "/perch",
   description:
-    "Why Bird Palette exists. Collecting real plumage color combinations from nature.",
-};
+    "Why Bird Palette exists — collecting real bird plumage color combinations from nature. About the project, data sources, and bird sound recordings.",
+});
 
 const SOURCES = [
   {

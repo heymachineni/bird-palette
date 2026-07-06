@@ -3,10 +3,14 @@ import { InfoBackLink } from "@/components/layout/info-back-link";
 import { InfoEmailLink } from "@/components/layout/info-links";
 import { InfoPageFooter } from "@/components/layout/info-page-footer";
 
-export const metadata: Metadata = {
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
   title: "Privacy",
-  description: "Privacy policy for Bird Palette.",
-};
+  pathname: "/privacy",
+  description: "Privacy policy for Bird Palette — bird plumage color catalog at birdpalette.web.app.",
+  keywords: ["bird palette privacy", "birdpalette privacy policy"],
+});
 
 export default function PrivacyPage() {
   return (

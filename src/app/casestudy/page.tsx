@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { CaseStudyPage } from "@/components/casestudy/case-study-page";
 import { InfoBackLink } from "@/components/layout/info-back-link";
 
-export const metadata: Metadata = {
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
   title: "Case study",
+  pathname: "/casestudy",
   description:
-    "How Bird Palette turned real bird plumage into a searchable color library.",
-};
+    "How Bird Palette turns bird plumage photographs into searchable color palettes — pipeline, design decisions, and color extraction from nature.",
+});
 
 export default function CaseStudyRoute() {
   return (

@@ -1,0 +1,25 @@
+# Bird Palette
+
+> Bird plumage color palettes from 10,000+ species — search by name, scientific name, or hex color.
+
+Bird Palette (birdpalette.web.app) is a free web catalog of real bird color combinations extracted from nature photographs. Each species page shows proportional plumage colors, hex codes, and related palettes.
+
+## Key pages
+
+- Home: https://birdpalette.web.app/
+- About: https://birdpalette.web.app/perch
+- Case study: https://birdpalette.web.app/casestudy
+
+## Example species
+
+- Gray Heron: https://birdpalette.web.app/birds/ardea-cinerea
+- Purple Heron: https://birdpalette.web.app/birds/ardea-purpurea
+- Northern Cardinal: https://birdpalette.web.app/birds/cardinalis-cardinalis
+
+## Topics
+
+bird palette, birdpalette, bird plumage colors, colors of birds, color combination of birds, ornithology, nature color palette, biodiversity, design inspiration
+
+## Contact
+
+heymachineni@gmail.com

@@ -3,10 +3,14 @@ import { InfoBackLink } from "@/components/layout/info-back-link";
 import { InfoEmailLink } from "@/components/layout/info-links";
 import { InfoPageFooter } from "@/components/layout/info-page-footer";
 
-export const metadata: Metadata = {
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
   title: "Terms",
-  description: "Terms of service for Bird Palette.",
-};
+  pathname: "/terms",
+  description: "Terms of service for Bird Palette — educational use of bird plumage color data.",
+  keywords: ["bird palette terms", "birdpalette terms of service"],
+});
 
 export default function TermsPage() {
   return (

@@ -2,6 +2,8 @@
   "name": "nature-palette",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://birdpalette.web.app",
+  "description": "Bird plumage color palettes from 10,000+ species — search colors of birds by name or hex.",
   "scripts": {
     "dev": "USE_JSON_DATA=true next dev",
     "build": "next build",
