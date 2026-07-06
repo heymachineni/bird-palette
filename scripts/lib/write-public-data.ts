@@ -99,5 +99,20 @@ export async function writePublicBirdData(
     JSON.stringify(searchIndex),
   );
 
+  const shareIndex = Object.fromEntries(
+    sorted.map((b) => [
+      b.slug,
+      {
+        name: b.name,
+        scientificName: b.scientificName,
+        imageUrl: b.imageUrl,
+      },
+    ]),
+  );
+  await writeFile(
+    path.join(DATA_DIR, "share-index.json"),
+    JSON.stringify(shareIndex),
+  );
+
   return { total: sorted.length, pageCount };
 }

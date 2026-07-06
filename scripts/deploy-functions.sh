@@ -23,6 +23,6 @@ fi
 unset VSCODE_CWD
 chmod +x scripts/firebase-deploy-with-retry.sh
 bash scripts/firebase-deploy-with-retry.sh \
-  --only functions:photoSample,functions:birdSound
+  --only functions:photoSample,functions:birdSound,functions:birdShare
 
 echo "✓ photoSample + birdSound deployed"

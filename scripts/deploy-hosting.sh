@@ -25,6 +25,6 @@ bash scripts/prepare-functions.sh
 chmod +x scripts/firebase-deploy-with-retry.sh
 # storage.rules is in-repo but omitted until Storage is enabled in the Firebase console.
 bash scripts/firebase-deploy-with-retry.sh \
-  --only hosting,functions:photoSample,functions:birdSound,firestore:rules
+  --only hosting,functions:photoSample,functions:birdSound,functions:birdShare,firestore:rules
 
 echo "✓ https://birdpalette.web.app"

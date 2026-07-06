@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { BirdSummary } from "@/types/bird";
+import {
+  applyBirdDocumentMeta,
+  restoreDocumentMeta,
+} from "@/lib/seo/bird-document-meta";
 import { cn } from "@/lib/utils";
 import {
   BirdDetailContent,
@@ -119,6 +123,14 @@ export function BirdDetailModal({
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
+
+  useEffect(() => {
+    if (open && bird) {
+      applyBirdDocumentMeta(bird);
+      return () => restoreDocumentMeta();
+    }
+    restoreDocumentMeta();
+  }, [open, bird]);
 
   if (!open || !bird) return null;
 

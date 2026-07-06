@@ -26,7 +26,10 @@
     "rewrites": [
       {
         "source": "/birds/**",
-        "destination": "/index.html"
+        "function": {
+          "functionId": "birdShare",
+          "region": "us-central1"
+        }
       },
       {
         "source": "/api/photo-sample",

@@ -5,6 +5,7 @@ const {
   fetchImageWithAllowlist,
   isRateLimited,
 } = require("./http-utils.js");
+const { handleBirdShare } = require("./bird-share.js");
 
 const soundCache = new Map();
 
@@ -129,5 +130,19 @@ exports.birdSound = onRequest(
     } catch {
       res.status(502).json({ error: "upstream failed" });
     }
+  },
+);
+
+/** Bird deep links: SPA shell for users, OG HTML with bird image for crawlers. */
+exports.birdShare = onRequest(
+  {
+    region: "us-central1",
+    cors: false,
+    invoker: "public",
+    maxInstances: 10,
+    memory: "256MiB",
+  },
+  async (req, res) => {
+    await handleBirdShare(req, res);
   },
 );
