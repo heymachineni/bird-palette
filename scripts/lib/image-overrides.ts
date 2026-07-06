@@ -8,6 +8,9 @@ export const IMAGE_OVERRIDES: Record<string, string> = {
   "cardinalis-cardinalis":
     "https://inaturalist-open-data.s3.amazonaws.com/photos/189434971/medium.jpg",
   "nesillas-aldabrana": "/birds/nesillas-aldabrana.png",
+  "ardea-cinerea-juvenile": "/birds/ardea-cinerea-juvenile.webp",
+  "ardea-purpurea-juvenile": "/birds/ardea-purpurea-juvenile.webp",
+  "ardea-cinerea-purpurea-hybrid": "/birds/ardea-cinerea-purpurea-hybrid.webp",
 };
 
 export function resolveImageUrl(slug: string, imageUrl: string): string {

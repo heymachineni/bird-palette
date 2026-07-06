@@ -14,6 +14,7 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx scripts/seed.ts",
     "build:birds": "tsx scripts/build-from-photos.ts",
+    "add:custom-birds": "tsx scripts/add-custom-birds.ts",
     "refresh-colors": "tsx scripts/refresh-colors.ts",
     "refresh-photos": "tsx scripts/refresh-photos.ts",
     "download:birdnet": "curl -sL 'https://birdnet.cornell.edu/taxonomy/api/download/csv' -o data/birdnet/birdnet-taxonomy.csv",
