@@ -203,7 +203,7 @@ export function BirdSoundButton({
       return `Play ${state.sound.soundType}`;
     }
     if (fetchLoading) return "Checking for bird sound";
-    return "Bird sound unavailable";
+    return UNAVAILABLE_COPY;
   })();
 
   const button = (
@@ -263,6 +263,13 @@ export function BirdSoundButton({
           onEnded={onAudioEnded}
           onPlaying={onAudioPlaying}
           onWaiting={onAudioWaiting}
+          onCanPlay={() => setBuffering(false)}
+          onError={() => {
+            setPlaying(false);
+            setPaused(false);
+            setBuffering(false);
+            setState({ status: "unavailable" });
+          }}
           className="hidden"
         />
       ) : null}

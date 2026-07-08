@@ -6,9 +6,25 @@ const ALLOWED_ORIGINS = new Set([
   "http://127.0.0.1:3000",
 ]);
 
-const RATE_WINDOW_MS = 60_000;
-const RATE_MAX_REQUESTS = 120;
-const rateBuckets = new Map();
+const ALLOWED_HOSTS = new Set([
+  "birdpalette.web.app",
+  "birdpalette.firebaseapp.com",
+  "localhost:3000",
+  "127.0.0.1:3000",
+]);
+
+function hostFromRequest(req) {
+  const raw = req.get("x-forwarded-host") || req.get("host") || "";
+  return raw.split(",")[0].trim().toLowerCase();
+}
+
+function originFromHost(host, req) {
+  if (!host || !ALLOWED_HOSTS.has(host)) return null;
+  const proto =
+    req.get("x-forwarded-proto") ||
+    (host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
+  return `${proto}://${host}`;
+}
 
 function resolveAllowedOrigin(req) {
   const origin = req.get("Origin");
@@ -24,8 +40,20 @@ function resolveAllowedOrigin(req) {
     }
   }
 
+  // Hosting rewrites to Cloud Functions can drop Origin/Referer on subresource
+  // fetches. Sec-Fetch-Site + Host is a reliable same-origin signal.
+  const secFetchSite = req.get("Sec-Fetch-Site");
+  if (secFetchSite === "same-origin" || secFetchSite === "same-site") {
+    const inferred = originFromHost(hostFromRequest(req), req);
+    if (inferred) return inferred;
+  }
+
   return null;
 }
+
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX_REQUESTS = 120;
+const rateBuckets = new Map();
 
 /**
  * Browser-only gate: same-origin / hosting rewrites send Origin or Referer.

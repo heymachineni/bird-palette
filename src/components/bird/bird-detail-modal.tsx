@@ -7,6 +7,7 @@ import {
   applyBirdDocumentMeta,
   restoreDocumentMeta,
 } from "@/lib/seo/bird-document-meta";
+import { prefetchBirdSounds } from "@/lib/bird-sound/fetch-bird-sound";
 import { cn } from "@/lib/utils";
 import {
   BirdDetailContent,
@@ -131,6 +132,14 @@ export function BirdDetailModal({
     }
     restoreDocumentMeta();
   }, [open, bird]);
+
+  useEffect(() => {
+    if (!open || !bird) return;
+    prefetchBirdSounds(
+      [bird, ...related].map((entry) => entry.scientificName),
+      5,
+    );
+  }, [open, bird, related]);
 
   if (!open || !bird) return null;
 

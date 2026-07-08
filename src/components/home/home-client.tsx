@@ -12,6 +12,7 @@ import type { BirdSummary, DataManifest } from "@/types/bird";
 import { filterBirds, filterBirdsByHex, sortBirdsByColorRelevance } from "@/lib/search";
 import { fetchBirdPage, fetchSearchIndex } from "@/lib/data/client-birds";
 import { birdSlugFromPath } from "@/lib/bird-url";
+import { prefetchBirdSounds } from "@/lib/bird-sound/fetch-bird-sound";
 import { HomeSearch } from "./home-search";
 import { HomeEmptyState } from "./home-empty-state";
 import { HomeSearchFailureState } from "./home-search-failure-state";
@@ -185,6 +186,31 @@ export function HomeClient({
     }
     return [...map.values()];
   }, [loadedBirds, searchIndex]);
+
+  const soundPrefetchNames = useMemo(() => {
+    const names: string[] = [];
+    const seen = new Set<string>();
+    const pushName = (name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      const key = trimmed.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      names.push(trimmed);
+    };
+
+    for (const bird of visible) pushName(bird.scientificName);
+
+    if (isFiltering) {
+      for (const bird of results.slice(0, 24)) pushName(bird.scientificName);
+    }
+
+    return names;
+  }, [visible, isFiltering, results]);
+
+  useEffect(() => {
+    prefetchBirdSounds(soundPrefetchNames);
+  }, [soundPrefetchNames]);
 
   useEffect(() => {
     const prev = prevFilters.current;

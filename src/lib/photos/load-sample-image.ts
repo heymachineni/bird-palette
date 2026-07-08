@@ -22,7 +22,10 @@ function loadImageElement(
   return new Promise((resolve) => {
     const img = new Image();
     if (crossOrigin) img.crossOrigin = "anonymous";
-    img.referrerPolicy = "no-referrer";
+    const isProxy =
+      url.startsWith("/api/") ||
+      (typeof window !== "undefined" && url.includes("/api/photo-sample"));
+    if (!isProxy) img.referrerPolicy = "no-referrer";
     img.onload = () => resolve(probeCanvas(img) ? img : null);
     img.onerror = () => resolve(null);
     img.src = url;
