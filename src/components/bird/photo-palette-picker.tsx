@@ -18,7 +18,7 @@ import {
 } from "@/lib/color/match-palette";
 import { paletteHaptic } from "@/lib/haptics";
 import { loadSampleProbeWithRetry } from "@/lib/photos/load-sample-image";
-import { sampleProbeUrls } from "@/lib/photos/sample-url";
+import { photoDisplayCandidates, sampleProbeUrls } from "@/lib/photos/sample-url";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -95,6 +95,7 @@ export function PhotoPalettePicker({
   onImageAspect,
 }: PhotoPalettePickerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const displayImgRef = useRef<HTMLImageElement>(null);
   const sampleImgRef = useRef<HTMLImageElement | null>(null);
   const sampleCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -111,6 +112,8 @@ export function PhotoPalettePicker({
   const viewRef = useRef<ViewTransform>({ zoom: MIN_ZOOM, panX: 0, panY: 0 });
 
   const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [tryIndex, setTryIndex] = useState(0);
   const [sampleState, setSampleState] = useState<
     "loading" | "ready" | "failed"
   >("loading");
@@ -125,6 +128,11 @@ export function PhotoPalettePicker({
   });
 
   viewRef.current = view;
+
+  const displayCandidates = useMemo(() => photoDisplayCandidates(src), [src]);
+  const displaySrc = displayCandidates[tryIndex] ?? src;
+  const isProxySrc =
+    displaySrc.startsWith("/api/") || displaySrc.includes("/api/photo-sample");
 
   const canPick = sampleState === "ready" && !samplingPaused && !multiTouch;
 
@@ -142,6 +150,9 @@ export function PhotoPalettePicker({
     pinchRef.current = null;
     panDragRef.current = null;
     setMultiTouch(false);
+    setTryIndex(0);
+    setLoaded(false);
+    setFailed(false);
   }, [expanded, samplingPaused, src]);
 
   useEffect(() => {
@@ -151,7 +162,6 @@ export function PhotoPalettePicker({
   useEffect(() => {
     let cancelled = false;
     setPreview(null);
-    setLoaded(false);
     setSampleState("loading");
     sampleImgRef.current = null;
     sampleCanvasRef.current = null;
@@ -171,6 +181,21 @@ export function PhotoPalettePicker({
       cancelled = true;
     };
   }, [src, reportAspect]);
+
+  useEffect(() => {
+    const el = displayImgRef.current;
+    if (el?.complete && el.naturalWidth > 0) setLoaded(true);
+  }, [displaySrc]);
+
+  const onImageError = useCallback(() => {
+    setLoaded(false);
+    setTryIndex((index) => {
+      const next = index + 1;
+      if (next < displayCandidates.length) return next;
+      setFailed(true);
+      return index;
+    });
+  }, [displayCandidates.length]);
 
   const ensureSampleCanvas = useCallback((): CanvasRenderingContext2D | null => {
     const img = sampleImgRef.current;
@@ -540,29 +565,38 @@ export function PhotoPalettePicker({
           )}
           style={transformStyle}
         >
-          {!loaded && (
+          {!loaded && !failed && (
             <div aria-hidden className="absolute inset-0 z-[1] bg-muted shimmer" />
           )}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt={alt}
-            decoding="async"
-            fetchPriority={priority ? "high" : "auto"}
-            referrerPolicy="no-referrer"
-            draggable={false}
-            className={cn(
-              "pointer-events-none absolute inset-0 h-full w-full select-none transition-opacity duration-300",
-              expanded ? "object-contain object-center" : "object-cover object-center",
-              loaded ? "opacity-100" : "opacity-0",
-            )}
-            onLoad={(e) => {
-              const img = e.currentTarget;
-              reportAspect(img.naturalWidth, img.naturalHeight);
-              setLoaded(true);
-            }}
-            onError={() => setLoaded(true)}
-          />
+          {failed && (
+            <div aria-hidden className="absolute inset-0 z-[1] bg-muted/80" />
+          )}
+          {!failed && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              key={displaySrc}
+              ref={displayImgRef}
+              src={displaySrc}
+              alt={alt}
+              decoding="async"
+              loading={priority ? "eager" : "lazy"}
+              fetchPriority={priority ? "high" : "auto"}
+              referrerPolicy={isProxySrc ? undefined : "no-referrer"}
+              draggable={false}
+              className={cn(
+                "pointer-events-none absolute inset-0 h-full w-full select-none transition-opacity duration-300",
+                expanded ? "object-contain object-center" : "object-cover object-center",
+                loaded ? "opacity-100" : "opacity-0",
+              )}
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                reportAspect(img.naturalWidth, img.naturalHeight);
+                setLoaded(true);
+                setFailed(false);
+              }}
+              onError={onImageError}
+            />
+          )}
         </div>
 
         {preview && !expandControlHover && !multiTouch && (

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { isBirdNetImageUrl } from "@/lib/photos/birdnet-placeholder";
 import { fetchInaturalistPhoto } from "@/lib/photos/inaturalist";
 import { hasBirdImage } from "@/lib/photos/placeholder";
-import { photoProxyUrl } from "@/lib/photos/sample-url";
+import { photoDisplayCandidates } from "@/lib/photos/sample-url";
 
 type BirdPhotoVariant = "hero" | "card" | "mini" | "plate";
 
@@ -38,12 +38,6 @@ const VARIANTS: Record<
     sizes: "(max-width: 1024px) 100vw, 560px",
   },
 };
-
-function photoDisplayCandidates(remoteSrc: string): string[] {
-  const proxied = photoProxyUrl(remoteSrc);
-  if (proxied !== remoteSrc) return [proxied, remoteSrc];
-  return [remoteSrc];
-}
 
 function buildPhotoCandidates(
   primary: string,

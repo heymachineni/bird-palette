@@ -1,5 +1,12 @@
 import { isPhotoSampleHost } from "./photo-sample-hosts";
 
+/** Display URLs to try for remote photos — proxy first, then direct. */
+export function photoDisplayCandidates(remoteSrc: string): string[] {
+  const proxied = photoProxyUrl(remoteSrc);
+  if (proxied !== remoteSrc) return [proxied, remoteSrc];
+  return [remoteSrc];
+}
+
 /** Same-origin proxy for remote bird photos (works on server and client). */
 export function photoProxyUrl(src: string): string {
   if (src.startsWith("/")) return src;
