@@ -32,12 +32,13 @@ Secondary:
 
 ## Sitemap
 
-`/sitemap.xml` includes:
+`/sitemap.xml` is a **sitemap index** that points to shards:
 
-- Home, perch, case study, privacy, terms
-- **All bird URLs** — `/birds/{slug}` (~10,000+ entries)
+- `/sitemap/0.xml`, `/sitemap/1.xml`, … (~2,500 URLs each)
 
-Generated at build time from `public/data/search-index.json`.
+Generated at build time from `public/data/search-index.json` (~10,000+ bird URLs + static routes).
+
+Smaller shards are more reliable for Google Search Console than one ~2MB file.
 
 ## Robots
 
@@ -76,5 +77,9 @@ Metadata gets you indexed; **ranking #1** also needs:
 
 1. https://search.google.com/search-console
 2. Add property: `https://birdpalette.web.app`
-3. Verify via HTML file: `public/googlef27cabbfdbb8641d.html` → live at `/googlef27cabbfdbb8641d.html`
-4. Submit: `https://birdpalette.web.app/sitemap.xml`
+3. Verify ownership (pick one):
+   - **HTML file** (already configured):  
+     `https://birdpalette.web.app/googlef27cabbfdbb8641d.html`  
+     (Hosting rewrite returns **200**, not a `.html` redirect)
+   - **HTML tag**: in Search Console choose “HTML tag”, copy the `content="..."` value into `.env` as `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=...`, redeploy hosting
+4. Submit sitemap: `https://birdpalette.web.app/sitemap.xml`

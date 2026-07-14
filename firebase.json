@@ -25,6 +25,10 @@
     "cleanUrls": true,
     "rewrites": [
       {
+        "source": "/googlef27cabbfdbb8641d.html",
+        "destination": "/google-site-verification.txt"
+      },
+      {
         "source": "/birds/**",
         "function": {
           "functionId": "birdShare",

@@ -84,6 +84,15 @@ export const metadata: Metadata = {
     description: DEFAULT_DESCRIPTION,
     images: [OG_IMAGE.url],
   },
+  // HTML-tag verification (Search Console → HTML tag). Optional: set
+  // NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION to the content="..." value.
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? {
+        verification: {
+          google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+        },
+      }
+    : {}),
 };
 
 export default function RootLayout({
