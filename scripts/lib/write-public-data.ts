@@ -105,7 +105,11 @@ export async function writePublicBirdData(
       {
         name: b.name,
         scientificName: b.scientificName,
+        region: b.region,
         imageUrl: b.imageUrl,
+        colorFamilies: b.colorFamilies.slice(0, 8),
+        /** Top plumage hexes for crawlable per-bird SEO / OG pages. */
+        colors: b.colors.slice(0, 12).map((c) => c.hex),
       },
     ]),
   );

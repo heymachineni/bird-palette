@@ -45,7 +45,16 @@ Generated at build time from `public/data/search-index.json`.
 
 ## Deep links
 
-`/birds/{slug}` rewrites to the home app and opens the bird modal client-side. Google can crawl URLs from the sitemap and execute JavaScript to index species-level pages.
+`/birds/{slug}` rewrites to the home app and opens the bird modal client-side for humans — **no separate bird UI page**.
+
+For crawlers (Googlebot, social previews, etc.), `birdShare` serves unique HTML with:
+
+- Per-bird title / description (`{Bird} Colors & Plumage Palette`)
+- Hex color list as crawlable text
+- JSON-LD (`CreativeWork`)
+- Bird image OG tags
+
+Humans still see the normal modal SPA. UI does not change.
 
 ## GitHub SEO
 
@@ -67,5 +76,5 @@ Metadata gets you indexed; **ranking #1** also needs:
 
 1. https://search.google.com/search-console
 2. Add property: `https://birdpalette.web.app`
-3. Verify via DNS or HTML tag
+3. Verify via HTML file: `public/googlef27cabbfdbb8641d.html` → live at `/googlef27cabbfdbb8641d.html`
 4. Submit: `https://birdpalette.web.app/sitemap.xml`
