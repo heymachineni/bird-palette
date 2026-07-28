@@ -150,10 +150,13 @@ export function PhotoPalettePicker({
     pinchRef.current = null;
     panDragRef.current = null;
     setMultiTouch(false);
+  }, [expanded, samplingPaused]);
+
+  useEffect(() => {
     setTryIndex(0);
     setLoaded(false);
     setFailed(false);
-  }, [expanded, samplingPaused, src]);
+  }, [src]);
 
   useEffect(() => {
     setCoarsePointer(window.matchMedia("(pointer: coarse)").matches);
@@ -185,7 +188,7 @@ export function PhotoPalettePicker({
   useEffect(() => {
     const el = displayImgRef.current;
     if (el?.complete && el.naturalWidth > 0) setLoaded(true);
-  }, [displaySrc]);
+  }, [displaySrc, expanded, samplingPaused]);
 
   const onImageError = useCallback(() => {
     setLoaded(false);
